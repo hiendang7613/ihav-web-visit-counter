@@ -11,12 +11,12 @@ The plugin has a shared Python standard-library core and thin Claude Code and Co
 
 One provider supplies each returned estimate. The plugin never averages or merges visits values across sources.
 
-The result cache is best-effort. If its directory cannot be read or written, the lookup continues and adds a cache warning to the result.
+The result cache is best-effort. If its directory cannot be read or written, the lookup continues and adds a cache warning to the result. Since estimate results from every provider are cached, a cached TrafficLens estimate can delay rechecking a recovered WebTrafficChecker for up to 24 hours. This is an accepted trade-off to reduce repeat requests to TrafficLens.
 
 Runtime files use `./.ihav_space/ihav-web-visit-counter/` relative to the process working directory. `IHAV_CACHE_DIR` and `--cache-dir` can override the cache location.
 
 ## Result kinds
 
-- `estimate`: either WebTrafficChecker's modelled `monthlyVisits` value and analysis timestamp, or TrafficLens's formatted visit string and scrape timestamp. A stale TrafficLens value remains marked stale. Neither provider has a measured error interval in this release.
-- `rank_only`: Tranco rank with `monthly_visits: null`.
+- `estimate`: `monthly_visits` is an integer for WebTrafficChecker and `null` for TrafficLens. `monthly_visits_text` is the display string: comma-grouped for WebTrafficChecker or TrafficLens's returned rounded string. The result also carries the source-specific analysis/scrape timestamp; a stale TrafficLens value remains marked stale. Neither provider has a measured error interval in this release.
+- `rank_only`: Tranco rank with `monthly_visits: null` and `monthly_visits_text: null`.
 - No matching data and no provider error: CLI exit `2`; it does not invent a number.

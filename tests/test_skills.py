@@ -20,6 +20,7 @@ class SkillDocumentationTests(unittest.TestCase):
             "no measured error interval",
             "stale",
             "Never average or merge",
+            "monthly_visits_text",
             "HTTP 401, 403, 429",
             "Do not try another browser",
         ):

@@ -42,7 +42,9 @@ class CliTests(unittest.TestCase):
         self.assertEqual(json_code, 0)
         self.assertEqual(human_code, 0)
         self.assertEqual(payload["kind"], "estimate")
+        self.assertIsInstance(payload["monthly_visits"], int)
         self.assertEqual(payload["monthly_visits"], 486200000)
+        self.assertEqual(payload["monthly_visits_text"], "486,200,000")
         self.assertIsNone(payload["period"])
         self.assertEqual(payload["analyzed_at"], "2026-09-11T12:00:00.000Z")
         self.assertEqual(primary.call_count, 1)
@@ -79,6 +81,7 @@ class CliTests(unittest.TestCase):
         self.assertEqual(exit_code, 0)
         self.assertEqual(payload["kind"], "rank_only")
         self.assertIsNone(payload["monthly_visits"])
+        self.assertIsNone(payload["monthly_visits_text"])
         self.assertIn("HTTP 403", " ".join(payload["notes"]))
         fetch.assert_called_once()
 

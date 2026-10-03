@@ -5,6 +5,7 @@
 - Add Claude Code and Codex skills backed by one Python standard-library CLI.
 - Add WebTrafficChecker modelled estimates with source, analysis timestamp, returned country shares and returned history.
 - Add TrafficLens as a partial middle fallback; preserve rounded visit strings, scrape dates and stale labels, and skip ranking-only responses.
+- Keep `monthly_visits` numeric or null in JSON and add `monthly_visits_text` for provider display values.
 - Add Tranco daily-list rank fallback that never invents visits.
 - Cache all estimate results for 24 hours, keep rank-only results uncached, and return one provider result without averaging.
 - Add local caching, blocked-source handling and fixture-only tests.

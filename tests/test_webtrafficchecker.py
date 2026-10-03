@@ -26,6 +26,7 @@ class WebTrafficCheckerTests(unittest.TestCase):
         self.assertIn("domain=github.com", fetch.call_args.args[0])
         self.assertEqual(result.kind, "estimate")
         self.assertEqual(result.monthly_visits, 486200000)
+        self.assertEqual(result.monthly_visits_text, "486,200,000")
         self.assertIsNone(result.period)
         self.assertEqual(result.analyzed_at, "2026-09-11T12:00:00.000Z")
         self.assertEqual(result.rank["value"], 20)

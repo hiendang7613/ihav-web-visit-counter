@@ -136,6 +136,7 @@ def lookup(domain: str, original_input: str, cache=None) -> VisitResult | None:
         domain=domain,
         kind="estimate",
         monthly_visits=visits,
+        monthly_visits_text=f"{visits:,}",
         period=None,
         analyzed_at=analyzed_at_text,
         range=None,

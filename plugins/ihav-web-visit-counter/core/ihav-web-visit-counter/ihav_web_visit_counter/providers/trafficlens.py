@@ -101,6 +101,7 @@ def lookup(domain: str, original_input: str, cache=None) -> VisitResult | None:
     scraped_at = _scraped_at(payload.get("scrapedAt"))
     if visits is None or scraped_at is None:
         return None
+    visits_text = visits if isinstance(visits, str) else f"{visits:,}"
 
     stale = payload.get("source") == "stale"
     rank_value = _positive_int(payload.get("globalRank"))
@@ -125,7 +126,8 @@ def lookup(domain: str, original_input: str, cache=None) -> VisitResult | None:
         input=original_input,
         domain=domain,
         kind="estimate",
-        monthly_visits=visits,
+        monthly_visits=None,
+        monthly_visits_text=visits_text,
         period=None,
         analyzed_at=None,
         range=None,

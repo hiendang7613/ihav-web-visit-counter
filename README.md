@@ -81,23 +81,23 @@ The JSON output follows a stable result contract. Expected exit codes:
 | `5` | Network/download failure or provider error when no fallback succeeds |
 | `64` | Invalid input or command arguments |
 
-Estimate results are cached for 24 hours; rank-only results are not cached. Runtime files are written under `./.ihav_space/ihav-web-visit-counter/` in the current working directory. Set `IHAV_CACHE_DIR` or pass `--cache-dir` to use another location. Add `.ihav_space/` to your project's `.gitignore` if you do not want runtime data tracked.
+Estimate results are cached for 24 hours; rank-only results are not cached. A cached TrafficLens estimate can delay rechecking a recovered WebTrafficChecker for up to 24 hours. This accepted trade-off reduces repeat requests to TrafficLens. Runtime files are written under `./.ihav_space/ihav-web-visit-counter/` in the current working directory. Set `IHAV_CACHE_DIR` or pass `--cache-dir` to use another location. Add `.ihav_space/` to your project's `.gitignore` if you do not want runtime data tracked.
 
 ## What the result means
 
 | Kind | What you receive | What it does not mean |
 |---|---|---|
-| `estimate` | One provider's monthly-visits value, source link and returned country shares/history. WebTrafficChecker supplies a number and `analyzedAt`; TrafficLens may supply a rounded string such as `631.0M` and `scrapedAt`. | It is not website-owner analytics. WebTrafficChecker's `analyzedAt` is an analysis timestamp; TrafficLens's `scrapedAt` is a scrape timestamp, not a reporting month. A stale TrafficLens value stays marked stale. Neither source publishes a measured error interval in the observed responses. |
-| `rank_only` | A rank from Tranco's downloaded daily top-1M list | A rank is not visits. `monthly_visits` remains `null`. |
+| `estimate` | `monthly_visits` is a number for WebTrafficChecker and `null` for TrafficLens. `monthly_visits_text` is the display string: comma-grouped for WebTrafficChecker or the provider's rounded string such as `631.0M` for TrafficLens. The source, date and returned country shares/history are also included. | It is not website-owner analytics. WebTrafficChecker's `analyzedAt` is an analysis timestamp; TrafficLens's `scrapedAt` is a scrape timestamp, not a reporting month. A stale TrafficLens value stays marked stale. Neither source publishes a measured error interval in the observed responses. |
+| `rank_only` | A rank from Tranco's downloaded daily top-1M list | A rank is not visits. Both `monthly_visits` and `monthly_visits_text` are `null`. |
 
-TrafficLens's rank-only response is skipped; it does not replace the final Tranco rank result or become visits. The plugin never converts rank to visits, averages or merges provider estimates, or creates a 12-month series when a provider has only a few history points. Each lookup returns one provider's result.
+TrafficLens's rank-only response is skipped; it does not replace the final Tranco rank result or become visits. The plugin never converts rank to visits, averages or merges provider estimates, or creates a 12-month series when a provider has only a few history points. Each lookup returns one provider's result. In JSON, `monthly_visits` is always an integer or `null`; use `monthly_visits_text` for an estimate's display value when `monthly_visits` is `null`.
 
 ## How it works
 
 1. Normalize the URL or domain while preserving subdomains other than a leading `www.`.
 2. Return the local 24-hour result cache when it is fresh.
 3. Ask WebTrafficChecker once. A usable `monthlyVisits` value becomes `kind: estimate` with the raw `analyzed_at` timestamp.
-4. If WebTrafficChecker has no usable estimate, is blocked, or fails, ask TrafficLens once. A valid `monthlyVisits` value becomes a separate `kind: estimate`; its formatted value stays a string, its `period` stays `null`, and its scrape date and stale state are shown. A TrafficLens ranking-only response is skipped.
+4. If WebTrafficChecker has no usable estimate, is blocked, or fails, ask TrafficLens once. A valid `monthlyVisits` value becomes a separate `kind: estimate`; `monthly_visits` stays `null` and its formatted value is preserved in `monthly_visits_text`. Its `period` stays `null`, and its scrape date and stale state are shown. A TrafficLens ranking-only response is skipped.
 5. If neither source returns a visit estimate, try the Tranco fallback once. Its result is `kind: rank_only`; it never becomes a visit count. The output says why the fallback was used.
 6. Stop a source on HTTP 401, 403, 429, or challenge content. The plugin does not retry that source or use browser routes or block workarounds. One provider answers each lookup; results are never averaged or merged.
 

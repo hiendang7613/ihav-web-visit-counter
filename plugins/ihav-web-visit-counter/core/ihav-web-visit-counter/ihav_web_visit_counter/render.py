@@ -23,7 +23,12 @@ def _format_visits(value: int | str) -> str:
 
 def render(result: VisitResult) -> str:
     lines = [f"{result.domain}"]
-    if result.kind == "estimate" and result.monthly_visits is not None:
+    if result.kind == "estimate" and (
+        result.monthly_visits is not None or result.monthly_visits_text is not None
+    ):
+        visits_text = result.monthly_visits_text
+        if visits_text is None:
+            visits_text = _format_visits(result.monthly_visits)
         details = []
         if result.stale:
             details.append("stale")
@@ -36,7 +41,7 @@ def render(result: VisitResult) -> str:
         else:
             details.append("date unavailable")
         lines.append(
-            f"  ~{_format_visits(result.monthly_visits)} estimated monthly visits · {' · '.join(details)}"
+            f"  ~{visits_text} estimated monthly visits · {' · '.join(details)}"
         )
         if result.range:
             lines.append(f"  Provider range: {_format_visits(result.range['low'])}–{_format_visits(result.range['high'])}")

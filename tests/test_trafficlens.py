@@ -4,6 +4,8 @@ import json
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -13,6 +15,7 @@ CORE = ROOT / "plugins/ihav-web-visit-counter/core/ihav-web-visit-counter"
 sys.path.insert(0, str(CORE))
 
 from ihav_web_visit_counter.errors import BlockedError
+from ihav_web_visit_counter import cli
 from ihav_web_visit_counter.models import result_from_dict
 from ihav_web_visit_counter.providers import PROVIDERS, trafficlens, tranco, webtrafficchecker
 from ihav_web_visit_counter.render import render
@@ -32,7 +35,8 @@ class TrafficLensTests(unittest.TestCase):
             result = trafficlens.lookup("example.com", "https://example.com", cache=None)
 
         self.assertEqual(result.kind, "estimate")
-        self.assertEqual(result.monthly_visits, "2.5M")
+        self.assertIsNone(result.monthly_visits)
+        self.assertEqual(result.monthly_visits_text, "2.5M")
         self.assertIsNone(result.period)
         self.assertIsNone(result.analyzed_at)
         self.assertEqual(result.scraped_at, "2026-10-02T12:00:00.000Z")
@@ -51,7 +55,8 @@ class TrafficLensTests(unittest.TestCase):
             result = trafficlens.lookup("github.com", "github.com", cache=None)
 
         output = render(result)
-        self.assertEqual(result.monthly_visits, "631.0M")
+        self.assertIsNone(result.monthly_visits)
+        self.assertEqual(result.monthly_visits_text, "631.0M")
         self.assertTrue(result.stale)
         self.assertEqual(result.scraped_at, "2026-06-04T04:46:23.619Z")
         self.assertIsNone(result.period)
@@ -111,8 +116,30 @@ class TrafficLensTests(unittest.TestCase):
         self.assertEqual(first.source["name"], "TrafficLens")
         self.assertTrue(any("WebTrafficChecker failed" in note for note in first.notes))
         self.assertTrue(second.cached)
-        self.assertEqual(second.monthly_visits, "631.0M")
+        self.assertIsNone(second.monthly_visits)
+        self.assertEqual(second.monthly_visits_text, "631.0M")
         self.assertTrue(second.stale)
+
+    def test_cli_json_keeps_numeric_visits_null_and_card_uses_text_value(self):
+        stdout = StringIO()
+        with tempfile.TemporaryDirectory() as temporary:
+            with patch.object(webtrafficchecker, "lookup", return_value=None):
+                with patch.object(trafficlens, "get_bytes", return_value=(200, fixture("stale-github.json"), {})):
+                    with patch.object(tranco, "lookup") as rank_fallback:
+                        with redirect_stdout(stdout):
+                            exit_code = cli.main(["github.com", "--json", "--cache-dir", temporary])
+                        payload = json.loads(stdout.getvalue())
+                        self.assertIsNone(payload["monthly_visits"])
+                        self.assertIsInstance(payload["monthly_visits_text"], str)
+                        self.assertEqual(payload["monthly_visits_text"], "631.0M")
+                        stdout.seek(0)
+                        stdout.truncate(0)
+                        with redirect_stdout(stdout):
+                            card_code = cli.main(["github.com", "--cache-dir", temporary])
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(card_code, 0)
+        self.assertIn("~631.0M estimated monthly visits · stale · scraped 2026-06-04", stdout.getvalue())
+        rank_fallback.assert_not_called()
 
     def test_old_cached_result_shape_remains_readable(self):
         body = (ROOT / "tests/fixtures/webtrafficchecker/github.json").read_bytes()
@@ -121,12 +148,36 @@ class TrafficLensTests(unittest.TestCase):
         old_shape = result.to_dict()
         old_shape.pop("scraped_at")
         old_shape.pop("stale")
+        old_shape.pop("monthly_visits_text")
 
         restored = result_from_dict(old_shape)
 
         self.assertEqual(restored.monthly_visits, result.monthly_visits)
+        self.assertEqual(restored.monthly_visits_text, "486,200,000")
         self.assertIsNone(restored.scraped_at)
         self.assertFalse(restored.stale)
+
+    def test_intermediate_trafficlens_cache_string_migrates_to_text_field(self):
+        body = fixture("stale-github.json")
+        with patch.object(trafficlens, "get_bytes", return_value=(200, body, {})):
+            result = trafficlens.lookup("github.com", "github.com")
+        previous_shape = result.to_dict()
+        previous_shape.pop("monthly_visits_text")
+        previous_shape["monthly_visits"] = "631.0M"
+
+        restored = result_from_dict(previous_shape)
+
+        self.assertIsNone(restored.monthly_visits)
+        self.assertEqual(restored.monthly_visits_text, "631.0M")
+
+    def test_current_cache_contract_rejects_formatted_text_in_numeric_field(self):
+        with patch.object(trafficlens, "get_bytes", return_value=(200, fixture("stale-github.json"), {})):
+            result = trafficlens.lookup("github.com", "github.com")
+        invalid = result.to_dict()
+        invalid["monthly_visits"] = "631.0M"
+
+        with self.assertRaises(ValueError):
+            result_from_dict(invalid)
 
     def test_non_count_and_mismatched_domains_are_ignored(self):
         invalid = json.loads(fixture("count.json"))

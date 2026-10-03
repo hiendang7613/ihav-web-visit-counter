@@ -12,6 +12,8 @@ WebTrafficChecker history snapshots come from `historicalRanks` entries that inc
 
 Only one source answers each lookup. The plugin never averages or merges separate estimates. The retained GitHub probes differed by about 29.8%, but they used different sources and timestamps, and the TrafficLens value was stale. This is not an accuracy measurement or a confidence interval.
 
+Estimate results from every provider are cached for 24 hours. A cached TrafficLens estimate can therefore delay rechecking a recovered WebTrafficChecker for up to 24 hours. This is an accepted trade-off to reduce repeat requests to TrafficLens.
+
 ## Tranco rank fallback
 
 Tranco rank is a popularity signal, not a visit count. No rank-to-visits curve or empirical error interval is implemented. If neither WebTrafficChecker nor TrafficLens has a usable visit count, and the domain appears in Tranco, the result is `rank_only` with `monthly_visits: null` and a note explaining the fallback. TrafficLens's rank-only payload is skipped and does not change this rule.

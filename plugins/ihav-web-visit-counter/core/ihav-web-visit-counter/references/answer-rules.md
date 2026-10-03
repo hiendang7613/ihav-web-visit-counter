@@ -2,6 +2,7 @@
 
 - Run the bundled CLI; never fill missing traffic with model memory or a search-result snippet.
 - `estimate` is one provider's reported estimate: WebTrafficChecker's modelled numeric value or TrafficLens's formatted value. It is not owner analytics and neither provider has an independently measured error interval in this release.
+- In JSON, `monthly_visits` is always an integer or `null`; never place a formatted count string in it. `monthly_visits_text` is the display string. WebTrafficChecker results set both; TrafficLens results use `monthly_visits: null` and preserve the formatted value in `monthly_visits_text`. When an estimate has a null `monthly_visits`, read its display value from `monthly_visits_text`.
 - For WebTrafficChecker, `period` is `null`; show `analyzed_at` as `analyzed YYYY-MM-DD`. For TrafficLens, keep `period: null`, preserve `scraped_at`, show `scraped YYYY-MM-DD`, and include `stale` when the provider marks `source=stale`. These are timestamps, not reporting months.
 - Preserve a TrafficLens formatted count string such as `631.0M`; show it with an approximation marker and never expand it into an exact-looking integer. Keep the source name and link beside every number. Preserve only country shares and visits history actually returned by the selected provider.
 - One provider answers a lookup. Never average or merge values from different providers.

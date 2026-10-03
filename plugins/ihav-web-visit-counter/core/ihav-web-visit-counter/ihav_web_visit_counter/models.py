@@ -11,7 +11,7 @@ class VisitResult:
     input: str
     domain: str
     kind: str
-    monthly_visits: int | str | None
+    monthly_visits: int | None
     period: str | None
     analyzed_at: str | None
     range: dict[str, Any] | None
@@ -26,6 +26,7 @@ class VisitResult:
     fetched_at: str
     cached: bool
     notes: list[str]
+    monthly_visits_text: str | None = None
     scraped_at: str | None = None
     stale: bool = False
 
@@ -35,19 +36,36 @@ class VisitResult:
 
 def result_from_dict(value: dict[str, Any]) -> VisitResult:
     """Load a result cache only when it still matches the public contract."""
-    legacy_required = {
+    base_required = {
         "input", "domain", "kind", "monthly_visits", "period", "analyzed_at", "range", "confidence",
         "rank", "history", "history_source", "countries", "countries_source", "source",
         "calibration", "fetched_at", "cached", "notes",
     }
-    if set(value) == legacy_required:
+    freshness_fields = {"scraped_at", "stale"}
+    if set(value) == base_required:
         value = {**value, "scraped_at": None, "stale": False}
-    required = legacy_required | {"scraped_at", "stale"}
+    if set(value) == base_required | freshness_fields:
+        value = dict(value)
+        old_visits = value.get("monthly_visits")
+        if isinstance(old_visits, str):
+            value["monthly_visits"] = None
+            display_visits = old_visits
+        elif isinstance(old_visits, int) and not isinstance(old_visits, bool):
+            display_visits = f"{old_visits:,}"
+        else:
+            display_visits = None
+        value["monthly_visits_text"] = display_visits
+    required = base_required | freshness_fields | {"monthly_visits_text"}
     if set(value) != required or value.get("kind") not in {"estimate", "rank_only"}:
         raise ValueError("Cached result does not match the current contract.")
     visits = value.get("monthly_visits")
-    if visits is not None and (isinstance(visits, bool) or not isinstance(visits, (int, str))):
+    if visits is not None and (isinstance(visits, bool) or not isinstance(visits, int)):
         raise ValueError("Cached monthly visits value has an unsupported type.")
+    display_visits = value.get("monthly_visits_text")
+    if display_visits is not None and not isinstance(display_visits, str):
+        raise ValueError("Cached monthly visits display value has an unsupported type.")
+    if value.get("kind") == "rank_only" and (visits is not None or display_visits is not None):
+        raise ValueError("Cached rank-only result cannot contain a visit value.")
     if value.get("scraped_at") is not None and not isinstance(value.get("scraped_at"), str):
         raise ValueError("Cached scrape timestamp has an unsupported type.")
     if not isinstance(value.get("stale"), bool):
