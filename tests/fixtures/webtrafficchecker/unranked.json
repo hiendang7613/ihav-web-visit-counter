@@ -1,0 +1,23 @@
+{
+  "domain": "ihav-no-such-site-48213.com",
+  "analyzedAt": "2026-10-03T11:21:00.000Z",
+  "traffic": {
+    "monthlyVisits": 65,
+    "uniqueVisitors": 0,
+    "isRanked": false,
+    "globalRank": 0,
+    "category": "Unranked Website",
+    "trend": "unranked"
+  },
+  "dns": {
+    "ipAddresses": [],
+    "statusCode": 530
+  },
+  "geography": [
+    {"countryCode": "US", "percentage": 45.2},
+    {"countryCode": "IN", "percentage": 10.3},
+    {"countryCode": "BR", "percentage": 6.5},
+    {"countryCode": "GB", "percentage": 6.5},
+    {"countryCode": "DE", "percentage": 5.2}
+  ]
+}

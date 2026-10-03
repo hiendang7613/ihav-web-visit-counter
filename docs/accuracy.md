@@ -4,6 +4,8 @@
 
 WebTrafficChecker says its value is modelled from rank and public signals. TrafficLens may return a scraped or upstream estimate; it returned one rounded value marked stale in the retained probe. The observed responses did not provide a measured confidence interval. The project has not established comparable owner-published total-visits anchors or holdout error. This release therefore displays no error range.
 
+WebTrafficChecker's positive `monthlyVisits` is not enough to establish usable data. The adapter rejects a response when `traffic.isRanked` is false, `traffic.globalRank` is zero, null or missing, or the category is `Unranked Website`. A live check returned a placeholder value of 65 and a default country split for a nonexistent domain; neither value is shown. The lookup continues to TrafficLens and then Tranco. When no source has usable data, the CLI exits `2` with no visit number. Low-traffic or unranked domains receive a number only if a downstream visits provider returns one.
+
 WebTrafficChecker's raw `analyzed_at` timestamp is retained. TrafficLens's raw `scraped_at` timestamp is retained and displayed; when the provider marks its response stale, the CLI also displays “stale”. Neither timestamp is treated as the date range of measured visits or a confirmed reporting month. Formatted TrafficLens values stay approximate strings and are not expanded to exact-looking integers. The plugin does not invent a date window.
 
 ## History and geography

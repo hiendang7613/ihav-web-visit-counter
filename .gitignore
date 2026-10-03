@@ -1,9 +1,3 @@
-<!-- agent-room:begin -->
-agents_space/.runtime/
-agents_space/tasks/active.md
-agents_space/state/current_decisions.md
-<!-- agent-room:end -->
-
 # Runtime data created by ihav plugins
 .ihav_space/
 

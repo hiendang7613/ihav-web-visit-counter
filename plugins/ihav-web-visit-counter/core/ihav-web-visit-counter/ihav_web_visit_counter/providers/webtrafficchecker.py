@@ -103,6 +103,14 @@ def lookup(domain: str, original_input: str, cache=None) -> VisitResult | None:
     traffic = payload.get("traffic")
     if not isinstance(traffic, dict):
         return None
+    if traffic.get("isRanked") is False:
+        return None
+    rank_value = _as_positive_int(traffic.get("globalRank"))
+    category = traffic.get("category")
+    if rank_value is None or (
+        isinstance(category, str) and category.strip().casefold() == "unranked website"
+    ):
+        return None
     visits = _as_positive_int(traffic.get("monthlyVisits"))
     analyzed_at_raw = payload.get("analyzedAt")
     analyzed_at = _parse_timestamp(analyzed_at_raw)
@@ -110,14 +118,11 @@ def lookup(domain: str, original_input: str, cache=None) -> VisitResult | None:
         return None
 
     analyzed_at_text = analyzed_at_raw
-    rank_value = _as_positive_int(traffic.get("globalRank"))
-    rank = None
-    if rank_value is not None:
-        rank = {
-            "value": rank_value,
-            "list": "WebTrafficChecker global rank",
-            "date": analyzed_at.date().isoformat(),
-        }
+    rank = {
+        "value": rank_value,
+        "list": "WebTrafficChecker global rank",
+        "date": analyzed_at.date().isoformat(),
+    }
     history = _history(payload.get("historicalRanks"))
     countries = _countries(payload.get("geography"))
     source_url = f"{DISPLAY_URL}{domain}"

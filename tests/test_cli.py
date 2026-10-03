@@ -141,6 +141,33 @@ class CliTests(unittest.TestCase):
         self.assertNotIn("WebTrafficChecker", stderr.getvalue())
         self.assertNotIn("Tranco", stderr.getvalue())
 
+    def test_unranked_placeholder_falls_through_and_unknown_domain_exits_no_data(self):
+        fixture = (ROOT / "tests/fixtures/webtrafficchecker/unranked.json").read_bytes()
+        stdout = StringIO()
+        stderr = StringIO()
+        with tempfile.TemporaryDirectory() as temporary:
+            with patch(
+                "ihav_web_visit_counter.providers.webtrafficchecker.get_bytes",
+                return_value=(200, fixture, {"content-type": "application/json"}),
+            ):
+                with patch("ihav_web_visit_counter.providers.trafficlens.lookup", return_value=None) as middle:
+                    with patch("ihav_web_visit_counter.providers.tranco.lookup", return_value=None) as fallback:
+                        with redirect_stdout(stdout), redirect_stderr(stderr):
+                            exit_code = cli.main(
+                                ["ihav-no-such-site-48213.com", "--json", "--cache-dir", temporary]
+                            )
+
+        payload = json.loads(stdout.getvalue())
+        self.assertEqual(exit_code, 2)
+        self.assertEqual(payload["error"]["code"], "no_data")
+        self.assertIn("no visits were inferred", payload["error"]["message"])
+        self.assertNotIn("monthly_visits", payload)
+        self.assertNotIn("countries", payload)
+        self.assertNotIn("65", stdout.getvalue())
+        self.assertEqual(stderr.getvalue(), "")
+        middle.assert_called_once()
+        fallback.assert_called_once()
+
     def test_unexpected_exception_returns_stable_json_without_traceback(self):
         stdout = StringIO()
         stderr = StringIO()
