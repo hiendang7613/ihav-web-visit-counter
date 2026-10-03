@@ -1,0 +1,12 @@
+{
+  "name": "ihav-web-visit-counter",
+  "displayName": "ihav-web-visit-counter",
+  "version": "0.1.0",
+  "description": "Monthly website traffic estimates with source and analysis date, or an honest rank when no estimate exists.",
+  "author": {"name": "hiendang7613"},
+  "license": "MIT",
+  "keywords": ["web-traffic", "monthly-visits", "claude-code", "codex"],
+  "homepage": "https://github.com/hiendang7613/ihav-web-visit-counter",
+  "repository": "https://github.com/hiendang7613/ihav-web-visit-counter",
+  "skills": "./claude/skills"
+}

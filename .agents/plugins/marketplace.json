@@ -1,0 +1,12 @@
+{
+  "name": "ihav-web-visit-counter",
+  "interface": {"displayName": "ihav-web-visit-counter"},
+  "plugins": [
+    {
+      "name": "ihav-web-visit-counter",
+      "source": {"source": "local", "path": "./plugins/ihav-web-visit-counter"},
+      "policy": {"installation": "AVAILABLE"},
+      "category": "Productivity"
+    }
+  ]
+}

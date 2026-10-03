@@ -1,0 +1,18 @@
+{
+  "domain": "github.com",
+  "analyzedAt": "2026-09-11T12:00:00.000Z",
+  "traffic": {
+    "monthlyVisits": 486200000,
+    "uniqueVisitors": 211000000,
+    "globalRank": 20
+  },
+  "geography": [
+    {"country": "United States", "countryCode": "US", "percentage": 24.2, "visits": 117660400},
+    {"country": "India", "countryCode": "IN", "percentage": 11.8, "visits": 57371600},
+    {"country": "China", "countryCode": "CN", "percentage": 8.4, "visits": 40840800}
+  ],
+  "historicalRanks": [
+    {"date": "2026-08-13", "rank": 22, "visits": 472000000},
+    {"date": "2026-09-11", "rank": 20, "visits": 486200000}
+  ]
+}

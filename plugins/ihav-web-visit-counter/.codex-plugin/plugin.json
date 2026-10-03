@@ -1,0 +1,25 @@
+{
+  "name": "ihav-web-visit-counter",
+  "version": "0.1.0",
+  "description": "Monthly website traffic estimates with source and analysis date, or an honest rank when no estimate exists.",
+  "author": {"name": "hiendang7613"},
+  "license": "MIT",
+  "keywords": ["web-traffic", "monthly-visits", "claude-code", "codex"],
+  "skills": "./core/",
+  "interface": {
+    "displayName": "ihav-web-visit-counter",
+    "shortDescription": "Website traffic estimates with analysis date and rank-only fallback",
+    "longDescription": "Give a URL or domain. Get a provider-modelled monthly visits estimate with its analysis date and source link. If that source has no result, get a Tranco rank with monthly visits left unknown. No API key, paid service or browser is required.",
+    "developerName": "hiendang7613",
+    "category": "Productivity",
+    "capabilities": ["Interactive"],
+    "defaultPrompt": [
+      "How many monthly visits does example.com get?",
+      "Show the traffic history for example.com.",
+      "Which countries are in example.com's traffic estimate?"
+    ],
+    "websiteURL": "https://github.com/hiendang7613/ihav-web-visit-counter"
+  },
+  "homepage": "https://github.com/hiendang7613/ihav-web-visit-counter",
+  "repository": "https://github.com/hiendang7613/ihav-web-visit-counter"
+}

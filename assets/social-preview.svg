@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" role="img" aria-labelledby="title">
+  <title id="title">ihav-web-visit-counter: monthly estimates with source and date</title>
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b1023"/><stop offset="1" stop-color="#312e81"/></linearGradient></defs>
+  <rect width="1280" height="640" fill="url(#g)"/>
+  <circle cx="1110" cy="70" r="300" fill="#818cf8" opacity=".11"/>
+  <g font-family="Inter, ui-sans-serif, system-ui, sans-serif">
+    <text x="78" y="112" fill="#c7d2fe" font-size="18" font-weight="700" letter-spacing="3">IHAV · OPEN SOURCE PLUGINS</text>
+    <text x="78" y="206" fill="#fff" font-size="57" font-weight="760">ihav-web-visit-counter</text>
+    <text x="80" y="270" fill="#cbd5e1" font-size="27">Monthly website estimates with a date and source.</text>
+    <text x="80" y="312" fill="#cbd5e1" font-size="27">A rank stays a rank. No guess presented as fact.</text>
+    <rect x="80" y="390" width="660" height="160" rx="20" fill="#fff"/>
+    <text x="112" y="438" fill="#0f172a" font-size="22" font-weight="700">example.com</text>
+    <text x="112" y="489" fill="#4f46e5" font-size="31" font-weight="750">~2.43M estimated monthly visits</text>
+    <text x="112" y="527" fill="#64748b" font-size="17">Analyzed 2026-08-14 · synthetic example · source linked</text>
+    <text x="80" y="596" fill="#fbbf24" font-size="16" font-weight="650">CLAUDE CODE  ·  CODEX  ·  PYTHON STANDARD LIBRARY</text>
+  </g>
+</svg>

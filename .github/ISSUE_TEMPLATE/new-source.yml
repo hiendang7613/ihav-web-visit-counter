@@ -1,0 +1,22 @@
+name: Suggest a data source
+description: Propose a source with a free public route and clear metric semantics.
+body:
+  - type: input
+    id: source
+    attributes:
+      label: Source URL
+    validations:
+      required: true
+  - type: textarea
+    id: metric
+    attributes:
+      label: What metric does it measure, and what terms cover automation?
+    validations:
+      required: true
+  - type: textarea
+    id: fixture
+    attributes:
+      label: Saved, redacted fixture or public example
+      description: Do not ask tests to contact a live site.
+    validations:
+      required: false

@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ['3.9', '3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Run fixture-only tests
+        run: python -m unittest discover -s tests -v
+      - name: Smoke test the CLI on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: py -3 plugins/ihav-web-visit-counter/core/ihav-web-visit-counter/scripts/visits.py --help
+      - name: Smoke test the CLI on macOS and Linux
+        if: runner.os != 'Windows'
+        run: python3 plugins/ihav-web-visit-counter/core/ihav-web-visit-counter/scripts/visits.py --help

@@ -1,0 +1,22 @@
+name: Question a traffic number
+description: Report a source value, date, rank, or label that looks wrong.
+body:
+  - type: input
+    id: domain
+    attributes:
+      label: Domain
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source and analysis date shown
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Public evidence that helps us check the result
+      description: Do not submit private analytics or credentials.
+    validations:
+      required: false

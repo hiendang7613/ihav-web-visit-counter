@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 410" role="img" aria-labelledby="title desc">
+  <title id="title">Synthetic terminal demo</title>
+  <desc id="desc">Illustrative terminal output with a modelled monthly estimate, an analysis date, two history snapshots and a source link.</desc>
+  <rect width="1040" height="410" rx="24" fill="#0f172a"/>
+  <path d="M0 65h1040" stroke="#334155"/>
+  <circle cx="31" cy="33" r="6" fill="#f87171"/><circle cx="52" cy="33" r="6" fill="#fbbf24"/><circle cx="73" cy="33" r="6" fill="#34d399"/>
+  <text x="103" y="39" fill="#94a3b8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="15">python3 scripts/visits.py example.com</text>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">
+    <text x="42" y="113" fill="#c4b5fd" font-weight="700">SYNTHETIC EXAMPLE · NOT A LIVE RESULT</text>
+    <text x="42" y="157" fill="#f8fafc" font-size="24" font-weight="700">example.com</text>
+    <text x="42" y="202" fill="#a5b4fc" font-size="22">~2,430,000 estimated monthly visits · analyzed 2026-09-11</text>
+    <text x="42" y="240" fill="#cbd5e1">Error range: not independently measured</text>
+    <text x="42" y="278" fill="#cbd5e1">History snapshots 2026-08-13 → 2026-09-11  ▁█</text>
+    <text x="42" y="316" fill="#cbd5e1">Top countries: US 41.0% · IN 9.0% · GB 6.0%</text>
+    <text x="42" y="354" fill="#fbbf24">Source: WebTrafficChecker · https://webtrafficchecker.com/traffic/example.com</text>
+  </g>
+</svg>

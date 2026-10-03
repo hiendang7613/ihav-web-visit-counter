@@ -1,0 +1,5 @@
+"""Shared, standard-library-only core for ihav-web-visit-counter."""
+
+from __future__ import annotations
+
+__version__ = "0.1.0"

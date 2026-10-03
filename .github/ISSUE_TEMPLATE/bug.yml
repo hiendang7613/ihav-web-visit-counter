@@ -1,0 +1,28 @@
+name: Bug report
+description: Report a problem with a result or command.
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Plugin version
+    validations:
+      required: true
+  - type: input
+    id: domain
+    attributes:
+      label: Domain checked
+      description: Do not include private URLs or account information.
+    validations:
+      required: false
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect, and what happened?
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Redacted command output
+    validations:
+      required: false

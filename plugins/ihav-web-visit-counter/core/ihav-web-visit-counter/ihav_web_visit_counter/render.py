@@ -1,0 +1,52 @@
+"""Plain terminal rendering that keeps type, period and attribution visible."""
+
+from __future__ import annotations
+
+from .models import VisitResult
+
+
+_SPARKS = "▁▂▃▄▅▆▇█"
+
+
+def _sparkline(values: list[int]) -> str:
+    if not values:
+        return ""
+    low, high = min(values), max(values)
+    if low == high:
+        return _SPARKS[3] * len(values)
+    return "".join(_SPARKS[round((value - low) * (len(_SPARKS) - 1) / (high - low))] for value in values)
+
+
+def _format_visits(value: int) -> str:
+    return f"{value:,}"
+
+
+def render(result: VisitResult) -> str:
+    lines = [f"{result.domain}"]
+    if result.kind == "estimate" and result.monthly_visits is not None:
+        analyzed_date = result.analyzed_at[:10] if result.analyzed_at else "date unavailable"
+        lines.append(f"  ~{_format_visits(result.monthly_visits)} estimated monthly visits · analyzed {analyzed_date}")
+        if result.range:
+            lines.append(f"  Provider range: {_format_visits(result.range['low'])}–{_format_visits(result.range['high'])}")
+        else:
+            lines.append("  Error range: not independently measured")
+    elif result.kind == "rank_only" and result.rank:
+        lines.append(f"  Tranco rank #{result.rank['value']:,} · list retrieved {result.rank['date']}")
+        lines.append("  Monthly visits: unknown. Rank is not a visit count.")
+
+    if result.history:
+        values = [int(point["visits"]) for point in result.history]
+        dates = f"{result.history[0]['date']} → {result.history[-1]['date']}"
+        lines.append(f"  History snapshots {dates}  {_sparkline(values)}")
+    if result.countries:
+        countries = " · ".join(
+            f"{item['country']} {float(item['share']) * 100:.1f}%" for item in result.countries[:5]
+        )
+        lines.append(f"  Top countries: {countries}")
+    if result.source:
+        lines.append(f"  Source: {result.source['name']} · {result.source['url']}")
+    if result.cached:
+        lines.append("  Cached result · refreshed at most once per 24 hours")
+    for note in result.notes:
+        lines.append(f"  Note: {note}")
+    return "\n".join(lines)

@@ -1,0 +1,11 @@
+[project]
+name = "ihav-web-visit-counter"
+version = "0.1.0"
+description = "Monthly website traffic estimates with source attribution and a rank-only fallback"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "hiendang7613"}]
+dependencies = []
+
+[tool.unittest]
+discover = "tests"

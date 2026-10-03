@@ -1,0 +1,14 @@
+{
+  "$schema": "https://www.schemastore.org/claude-code-marketplace.json",
+  "name": "ihav-web-visit-counter",
+  "description": "Monthly website traffic estimates for Claude Code and Codex.",
+  "owner": {"name": "hiendang7613"},
+  "plugins": [
+    {
+      "name": "ihav-web-visit-counter",
+      "source": "./plugins/ihav-web-visit-counter",
+      "category": "productivity",
+      "description": "Monthly traffic estimates with source and period, plus a rank-only fallback."
+    }
+  ]
+}
