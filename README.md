@@ -7,6 +7,7 @@
 <p align="center">Ask your coding agent how much traffic a website gets. See the estimate, its date and its source. If no estimate is available, see a rank instead of a guess.</p>
 
 <p align="center">
+  <a href="https://github.com/hiendang7613/ihav-web-visit-counter/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/hiendang7613/ihav-web-visit-counter/actions/workflows/ci.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-4F46E5.svg"></a>
   <img alt="Python standard library only" src="https://img.shields.io/badge/runtime-Python%20stdlib-0F172A.svg">
   <img alt="Claude Code and Codex" src="https://img.shields.io/badge/works%20with-Claude%20Code%20%7C%20Codex-F59E0B.svg">
@@ -19,6 +20,22 @@
 ## Install
 
 Requires Python 3.9 or later. The plugin core uses only the Python standard library. It does not need a paid account, API key, or browser.
+
+Paste the matching line into your coding agent to install it:
+
+Claude Code:
+
+```text
+Install ihav-web-visit-counter by running: claude plugin marketplace add hiendang7613/ihav-web-visit-counter && claude plugin install ihav-web-visit-counter@ihav-web-visit-counter
+```
+
+Codex:
+
+```text
+Install ihav-web-visit-counter by running: codex plugin marketplace add hiendang7613/ihav-web-visit-counter && codex plugin add ihav-web-visit-counter@ihav-web-visit-counter
+```
+
+Or run the commands yourself:
 
 Claude Code:
 
@@ -130,6 +147,18 @@ See [how it works](docs/how-it-works.md), [accuracy notes](docs/accuracy.md), an
 ## Privacy and local files
 
 The requested domain is sent to WebTrafficChecker. If it returns no usable visit estimate, the domain may also be sent once to TrafficLens. If neither supplies visits, the plugin downloads Tranco's public rank list and searches it locally. It does not send prompts, cookies, API keys, or account credentials. A 24-hour estimate cache and downloaded list live in `.ihav_space/ihav-web-visit-counter/` under the current working directory; remove that folder to clear them. Rank-only results are not cached.
+
+## FAQ
+
+**How accurate are the visit counts?** They are third-party estimates with no independently measured error interval. Keep the source and analysis or scrape date with the number; stale data stays labelled stale.
+
+**Why does a small website get no number?** The plugin rejects WebTrafficChecker's unranked placeholder estimates. If the other sources have no usable visits, it returns a rank or no data.
+
+**Which sources does it use?** WebTrafficChecker first, TrafficLens for a visit-count fallback, then Tranco for rank only. Each lookup returns one provider's result.
+
+**Can I use the data for anything?** Provider terms still apply. WebTrafficChecker has a competing-service clause, and TrafficLens restricts extraction and reuse. Read [terms and risks](docs/terms-and-risks.md) before publishing or using results at scale.
+
+**Does it work on Windows?** The core supports Python 3.9 or later and writes UTF-8 output for agent pipes. Use `py -3` for terminal examples and restart your coding agent after installation.
 
 ## Contributing
 

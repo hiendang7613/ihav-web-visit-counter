@@ -374,6 +374,8 @@ class CliTests(unittest.TestCase):
                 self.assertNotIn("traffic-lens-api.admin-d10.workers.dev", payload["error"]["notes"][0])
                 self.assertEqual([item["outcome"] for item in payload["providers"]], ["no_data", outcome, "no_data"])
                 self.assertEqual(payload["providers"][1]["http_status"], error.http_status)
+                self.assertTrue(payload["providers"][1]["detail"].startswith("TrafficLens returned HTTP " + detail))
+                self.assertNotIn("workers.dev", payload["providers"][1]["detail"])
 
     def test_unexpected_exception_returns_stable_json_without_traceback(self):
         stdout = StringIO()

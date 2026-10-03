@@ -19,12 +19,16 @@ def _provider_id(provider) -> str:
     return provider.PROVIDER_ID
 
 
-def _failure_note(provider, error: VisitError) -> str:
+def _failure_detail(provider, error: VisitError) -> str:
     name = _provider_name(provider)
     detail = error.message
     if error.source:
         detail = detail.replace(error.source, name)
-    return f"{name} failed: {detail}"
+    return detail
+
+
+def _failure_note(provider, error: VisitError) -> str:
+    return f"{_provider_name(provider)} failed: {_failure_detail(provider, error)}"
 
 
 def _short_detail(value: str | None) -> str | None:
@@ -105,7 +109,7 @@ def lookup(input_value: str, cache_dir: Path | None = None) -> VisitResult:
             failures.append((provider, exc))
             outcome = "blocked" if isinstance(exc, BlockedError) else "failed"
             http_status = exc.http_status if exc.http_status is not None else trace.http_status
-            outcomes.append(_attempt(provider, outcome, http_status, exc.message))
+            outcomes.append(_attempt(provider, outcome, http_status, _failure_detail(provider, exc)))
             outcome_notes.append((provider, _failure_note(provider, exc)))
             continue
         except Exception as exc:
