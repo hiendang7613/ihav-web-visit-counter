@@ -14,11 +14,18 @@ ROOT = Path(__file__).resolve().parents[1]
 CORE = ROOT / "plugins/ihav-web-visit-counter/core/ihav-web-visit-counter"
 sys.path.insert(0, str(CORE))
 
+from ihav_web_visit_counter import __version__
 from ihav_web_visit_counter.errors import BlockedError, ProviderError
 from ihav_web_visit_counter.http import USER_AGENT, _SameHostHTTPSRedirect, get_bytes
 
 
 class HTTPPolicyTests(unittest.TestCase):
+    def test_user_agent_uses_the_package_version(self):
+        self.assertEqual(
+            USER_AGENT,
+            f"ihav-web-visit-counter/{__version__} (+https://github.com/hiendang7613/ihav-web-visit-counter)",
+        )
+
     def test_http_403_stops_after_one_request(self):
         blocked = HTTPError("https://webtrafficchecker.com/api/traffic", 403, "Forbidden", {}, BytesIO(b"Access denied"))
         with patch("ihav_web_visit_counter.http._OPENER.open", side_effect=blocked) as opener:
@@ -28,6 +35,20 @@ class HTTPPolicyTests(unittest.TestCase):
         request = opener.call_args.args[0]
         self.assertEqual(request.get_header("User-agent"), USER_AGENT)
         self.assertEqual(request.get_method(), "GET")
+
+    def test_refused_redirect_says_it_was_not_followed(self):
+        redirect = HTTPError(
+            "https://traffic-lens-api.admin-d10.workers.dev/api/analyze/github.com",
+            302,
+            "Found",
+            {"Location": "https://example.net/traffic"},
+            BytesIO(b"redirect body"),
+        )
+        with patch("ihav_web_visit_counter.http._OPENER.open", side_effect=redirect) as opener:
+            with self.assertRaises(ProviderError) as raised:
+                get_bytes("https://traffic-lens-api.admin-d10.workers.dev/api/analyze/github.com", "application/json")
+        self.assertIn("redirect not followed", raised.exception.message)
+        opener.assert_called_once()
 
     def test_json_with_captcha_domain_text_is_not_a_challenge(self):
         response = BytesIO(b'{"domain":"recaptcha.net"}')

@@ -17,15 +17,27 @@ def _sparkline(values: list[int]) -> str:
     return "".join(_SPARKS[round((value - low) * (len(_SPARKS) - 1) / (high - low))] for value in values)
 
 
-def _format_visits(value: int) -> str:
-    return f"{value:,}"
+def _format_visits(value: int | str) -> str:
+    return value if isinstance(value, str) else f"{value:,}"
 
 
 def render(result: VisitResult) -> str:
     lines = [f"{result.domain}"]
     if result.kind == "estimate" and result.monthly_visits is not None:
-        analyzed_date = result.analyzed_at[:10] if result.analyzed_at else "date unavailable"
-        lines.append(f"  ~{_format_visits(result.monthly_visits)} estimated monthly visits · analyzed {analyzed_date}")
+        details = []
+        if result.stale:
+            details.append("stale")
+        if result.scraped_at:
+            details.append(f"scraped {result.scraped_at[:10]}")
+        elif result.stale:
+            details.append("scrape date unavailable")
+        elif result.analyzed_at:
+            details.append(f"analyzed {result.analyzed_at[:10]}")
+        else:
+            details.append("date unavailable")
+        lines.append(
+            f"  ~{_format_visits(result.monthly_visits)} estimated monthly visits · {' · '.join(details)}"
+        )
         if result.range:
             lines.append(f"  Provider range: {_format_visits(result.range['low'])}–{_format_visits(result.range['high'])}")
         else:

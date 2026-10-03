@@ -51,9 +51,8 @@ def lookup(input_value: str, cache_dir: Path | None = None) -> VisitResult:
                 f"Using this fallback after {'; '.join(item[1] for item in outcomes)}. No blocked source was retried."
             )
         _with_cache_notes(result, cache)
-        # Keep only the primary estimate in the result cache. Rank-only fallback
-        # results must not mask a recovered primary on the next lookup.
-        if result.kind == "estimate" and result.source and result.source.get("layer") == "primary":
+        # Cache estimates from every provider for 24 hours; never cache rank-only output.
+        if result.kind == "estimate":
             cache.put_result(result)
         return _with_cache_notes(result, cache)
 
@@ -65,6 +64,4 @@ def lookup(input_value: str, cache_dir: Path | None = None) -> VisitResult:
             message = f"{message} Other provider outcome: {'; '.join(other_outcomes)}."
         raise type(first_error)(message, first_error.source)
 
-    raise NoDataError(
-        f"No WebTrafficChecker estimate or Tranco rank was available for {domain}; no visits were inferred."
-    )
+    raise NoDataError(f"No usable visit estimate or rank was available for {domain}; no visits were inferred.")

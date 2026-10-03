@@ -16,7 +16,7 @@ sys.path.insert(0, str(CORE))
 
 from ihav_web_visit_counter import cli
 from ihav_web_visit_counter.errors import BlockedError, ProviderError
-from ihav_web_visit_counter.providers import webtrafficchecker
+from ihav_web_visit_counter.providers import trafficlens, webtrafficchecker
 from ihav_web_visit_counter.service import lookup
 
 
@@ -56,10 +56,12 @@ class CliTests(unittest.TestCase):
         stderr = StringIO()
         with tempfile.TemporaryDirectory() as temporary:
             with patch("ihav_web_visit_counter.providers.webtrafficchecker.lookup") as primary:
-                with patch("ihav_web_visit_counter.providers.tranco.lookup") as fallback:
-                    with redirect_stderr(stderr):
-                        exit_code = cli.main(["not a domain", "--cache-dir", temporary])
+                with patch("ihav_web_visit_counter.providers.trafficlens.lookup") as middle:
+                    with patch("ihav_web_visit_counter.providers.tranco.lookup") as fallback:
+                        with redirect_stderr(stderr):
+                            exit_code = cli.main(["not a domain", "--cache-dir", temporary])
         primary.assert_not_called()
+        middle.assert_not_called()
         fallback.assert_not_called()
         self.assertEqual(exit_code, 64)
         self.assertIn("enter a website", stderr.getvalue().lower())
@@ -69,9 +71,10 @@ class CliTests(unittest.TestCase):
         archive = (ROOT / "tests/fixtures/tranco/top-1m.csv.zip").read_bytes()
         with tempfile.TemporaryDirectory() as temporary:
             with patch("ihav_web_visit_counter.providers.webtrafficchecker.lookup", side_effect=BlockedError("HTTP 403; stopped", "webtrafficchecker.com")):
-                with patch("ihav_web_visit_counter.providers.tranco.get_bytes", return_value=(200, archive, {})) as fetch:
-                    with redirect_stdout(stdout):
-                        exit_code = cli.main(["github.com", "--json", "--cache-dir", temporary])
+                with patch("ihav_web_visit_counter.providers.trafficlens.lookup", return_value=None):
+                    with patch("ihav_web_visit_counter.providers.tranco.get_bytes", return_value=(200, archive, {})) as fetch:
+                        with redirect_stdout(stdout):
+                            exit_code = cli.main(["github.com", "--json", "--cache-dir", temporary])
         payload = json.loads(stdout.getvalue())
         self.assertEqual(exit_code, 0)
         self.assertEqual(payload["kind"], "rank_only")
@@ -83,9 +86,10 @@ class CliTests(unittest.TestCase):
         stdout = StringIO()
         with tempfile.TemporaryDirectory() as temporary:
             with patch("ihav_web_visit_counter.providers.webtrafficchecker.lookup", side_effect=BlockedError("HTTP 403; stopped", "webtrafficchecker.com")):
-                with patch("ihav_web_visit_counter.providers.tranco.lookup", side_effect=ProviderError("Tranco download failed", "Tranco")):
-                    with redirect_stdout(stdout):
-                        exit_code = cli.main(["github.com", "--json", "--cache-dir", temporary])
+                with patch("ihav_web_visit_counter.providers.trafficlens.lookup", return_value=None):
+                    with patch("ihav_web_visit_counter.providers.tranco.lookup", side_effect=ProviderError("Tranco download failed", "Tranco")):
+                        with redirect_stdout(stdout):
+                            exit_code = cli.main(["github.com", "--json", "--cache-dir", temporary])
         payload = json.loads(stdout.getvalue())
         self.assertEqual(exit_code, 4)
         self.assertEqual(payload["error"]["code"], "blocked")
@@ -95,8 +99,9 @@ class CliTests(unittest.TestCase):
         archive = (ROOT / "tests/fixtures/tranco/top-1m.csv.zip").read_bytes()
         with tempfile.TemporaryDirectory() as temporary:
             with patch("ihav_web_visit_counter.providers.webtrafficchecker.lookup", side_effect=ProviderError("primary unavailable", "WebTrafficChecker")):
-                with patch("ihav_web_visit_counter.providers.tranco.get_bytes", return_value=(200, archive, {})):
-                    result = lookup("github.com", Path(temporary))
+                with patch("ihav_web_visit_counter.providers.trafficlens.lookup", return_value=None):
+                    with patch("ihav_web_visit_counter.providers.tranco.get_bytes", return_value=(200, archive, {})):
+                        result = lookup("github.com", Path(temporary))
         self.assertEqual(result.kind, "rank_only")
         self.assertIn("primary unavailable", " ".join(result.notes))
 
@@ -104,9 +109,10 @@ class CliTests(unittest.TestCase):
         archive = (ROOT / "tests/fixtures/tranco/top-1m.csv.zip").read_bytes()
         with tempfile.TemporaryDirectory() as temporary:
             with patch("ihav_web_visit_counter.providers.webtrafficchecker.lookup", return_value=None) as primary:
-                with patch("ihav_web_visit_counter.providers.tranco.get_bytes", return_value=(200, archive, {})) as fetch:
-                    result = lookup("python.org", Path(temporary))
-                    cached = lookup("python.org", Path(temporary))
+                with patch("ihav_web_visit_counter.providers.trafficlens.lookup", return_value=None):
+                    with patch("ihav_web_visit_counter.providers.tranco.get_bytes", return_value=(200, archive, {})) as fetch:
+                        result = lookup("python.org", Path(temporary))
+                        cached = lookup("python.org", Path(temporary))
 
         self.assertEqual(primary.call_count, 2)
         fetch.assert_called_once()
@@ -122,12 +128,15 @@ class CliTests(unittest.TestCase):
     def test_missing_primary_timestamp_falls_back_instead_of_showing_a_number(self):
         with tempfile.TemporaryDirectory() as temporary:
             with patch("ihav_web_visit_counter.providers.webtrafficchecker.lookup", return_value=None):
-                with patch("ihav_web_visit_counter.providers.tranco.lookup", return_value=None):
-                    stderr = StringIO()
-                    with redirect_stderr(stderr):
-                        exit_code = cli.main(["github.com", "--cache-dir", temporary])
+                with patch("ihav_web_visit_counter.providers.trafficlens.lookup", return_value=None):
+                    with patch("ihav_web_visit_counter.providers.tranco.lookup", return_value=None):
+                        stderr = StringIO()
+                        with redirect_stderr(stderr):
+                            exit_code = cli.main(["github.com", "--cache-dir", temporary])
         self.assertEqual(exit_code, 2)
         self.assertIn("no visits were inferred", stderr.getvalue().lower())
+        self.assertNotIn("WebTrafficChecker", stderr.getvalue())
+        self.assertNotIn("Tranco", stderr.getvalue())
 
     def test_unexpected_exception_returns_stable_json_without_traceback(self):
         stdout = StringIO()

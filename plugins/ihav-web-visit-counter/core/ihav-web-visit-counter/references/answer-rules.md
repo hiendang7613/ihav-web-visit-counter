@@ -1,9 +1,12 @@
 # Answer rules
 
 - Run the bundled CLI; never fill missing traffic with model memory or a search-result snippet.
-- `estimate` means WebTrafficChecker's provider-modelled monthly visits number. It is not owner analytics and has no independently measured error interval in v0.
-- `period` is `null` in v0. `analyzed_at` is the provider's analysis timestamp and is shown as `analyzed YYYY-MM-DD`; it is not a reporting month or a confirmed visits measurement window.
-- Keep the source name and link beside every number. Preserve any country shares and history returned by the provider.
+- `estimate` is one provider's reported estimate: WebTrafficChecker's modelled numeric value or TrafficLens's formatted value. It is not owner analytics and neither provider has an independently measured error interval in this release.
+- For WebTrafficChecker, `period` is `null`; show `analyzed_at` as `analyzed YYYY-MM-DD`. For TrafficLens, keep `period: null`, preserve `scraped_at`, show `scraped YYYY-MM-DD`, and include `stale` when the provider marks `source=stale`. These are timestamps, not reporting months.
+- Preserve a TrafficLens formatted count string such as `631.0M`; show it with an approximation marker and never expand it into an exact-looking integer. Keep the source name and link beside every number. Preserve only country shares and visits history actually returned by the selected provider.
+- One provider answers a lookup. Never average or merge values from different providers.
 - `rank_only` means the Tranco daily-list rank is known and visits are unknown. A rank is not visits; never convert it into a number.
-- If the CLI stops on HTTP 401, 403, 429, challenge, or network failure, report that outcome. The CLI may use the separate Tranco fallback once; it must not retry the stopped source, switch its route, use a browser or work around a block.
+- If TrafficLens returns only a rank or no valid visits value, skip it and let Tranco supply the final rank-only result when available. Never turn TrafficLens rank history into visits history.
+- If the CLI stops on HTTP 401, 403, 429, challenge, or network failure, report that outcome. The CLI may continue to the next separate source once; it must not retry the stopped source, switch its route, use a browser or work around a block.
 - Mention that WebTrafficChecker's terms restrict substantially similar or competing services. This project accepts the risk for low-volume, cached lookups; access may still be suspended.
+- Mention that TrafficLens restricts extraction/reproduction and names SimilarWeb among its upstreams; possible upstream terms may apply. The adapter's use is conditional and partial, and public access does not establish permission to republish its data.

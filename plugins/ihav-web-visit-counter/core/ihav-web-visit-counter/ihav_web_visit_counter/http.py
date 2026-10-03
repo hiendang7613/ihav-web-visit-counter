@@ -8,10 +8,11 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
+from . import __version__
 from .errors import BlockedError, ProviderError
 
 
-USER_AGENT = "ihav-web-visit-counter/0.1.0 (+https://github.com/hiendang7613/ihav-web-visit-counter)"
+USER_AGENT = f"ihav-web-visit-counter/{__version__} (+https://github.com/hiendang7613/ihav-web-visit-counter)"
 TIMEOUT_SECONDS = 20
 MAX_RESPONSE_BYTES = 32 * 1024 * 1024
 
@@ -95,6 +96,12 @@ def get_bytes(url: str, accept: str, redirect_host: str | None = None) -> tuple[
                 source=source_host,
             ) from exc
         response_headers = _headers(exc.headers)
+        if 300 <= exc.code < 400 and "location" in response_headers:
+            exc.close()
+            raise ProviderError(
+                f"{source_host} returned a redirect; redirect not followed.",
+                source=source_host,
+            ) from exc
         body = _read_limited(exc, 16384, source_host)
         if _is_challenge(body, response_headers):
             raise BlockedError(

@@ -1,0 +1,17 @@
+{
+  "domain": "github.com",
+  "monthlyVisits": "631.0M",
+  "globalRank": 47,
+  "bounceRate": 35.8,
+  "avgDuration": "6m 32s",
+  "pagesPerVisit": 6.11,
+  "topCountries": [
+    {"country": "United States", "percentage": 19.7},
+    {"country": "China", "percentage": 12.7},
+    {"country": "India", "percentage": 9.3},
+    {"country": "Russia", "percentage": 6.8},
+    {"country": "Germany", "percentage": 4}
+  ],
+  "scrapedAt": "2026-06-04T04:46:23.619Z",
+  "source": "stale"
+}

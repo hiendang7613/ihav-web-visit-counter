@@ -1,0 +1,11 @@
+{
+  "domain": "example.com",
+  "monthlyVisits": "2.5M",
+  "globalRank": 3842,
+  "topCountries": [
+    {"country": "United States", "percentage": 42.1},
+    {"country": "Japan", "percentage": 8.4}
+  ],
+  "scrapedAt": "2026-10-02T12:00:00.000Z",
+  "source": "current"
+}

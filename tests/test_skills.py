@@ -15,9 +15,11 @@ class SkillDocumentationTests(unittest.TestCase):
         rules = (PLUGIN / "core/ihav-web-visit-counter/references/answer-rules.md").read_text(encoding="utf-8")
         for phrase in (
             "monthly visits are unknown",
-            "provider-modelled estimate",
+            "third-party estimate",
             "analysis date",
             "no measured error interval",
+            "stale",
+            "Never average or merge",
             "HTTP 401, 403, 429",
             "Do not try another browser",
         ):
@@ -25,7 +27,8 @@ class SkillDocumentationTests(unittest.TestCase):
                 self.assertIn(phrase, claude)
                 self.assertIn(phrase, codex)
         self.assertIn("`period` is `null`", rules)
-        self.assertIn("not a reporting month", rules)
+        self.assertIn("These are timestamps, not reporting months", rules)
+        self.assertIn("SimilarWeb among its upstreams", rules)
         self.assertIn("py -3", claude)
         self.assertIn("py -3", codex)
 
