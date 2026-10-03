@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add JSON contract version `2` and structured per-provider outcomes to success and error output while preserving existing result fields and exit codes.
+- Record provider API HTTP status separately from payload fields, and identify cached provider results without replaying an earlier block as current.
+
 ## 0.1.0 — 2026-10-03
 
 - Add Claude Code and Codex skills backed by one Python standard-library CLI.

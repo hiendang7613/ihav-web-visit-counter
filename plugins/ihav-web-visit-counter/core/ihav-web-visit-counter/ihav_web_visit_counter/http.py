@@ -75,11 +75,15 @@ class _SameHostHTTPSRedirect(HTTPRedirectHandler):
         return super().redirect_request(request, response, code, message, headers, new_url)
 
 
-def _read_limited(stream, limit: int, host: str) -> bytes:
+def _read_limited(stream, limit: int, host: str, http_status: int | None = None) -> bytes:
     try:
         return stream.read(limit)
     except (OSError, http.client.HTTPException) as exc:
-        raise ProviderError(f"Could not read the response from {host}; no retry was made.", source=host) from exc
+        raise ProviderError(
+            f"Could not read the response from {host}; no retry was made.",
+            source=host,
+            http_status=http_status,
+        ) from exc
 
 
 def get_bytes(url: str, accept: str, redirect_host: str | None = None) -> tuple[int, bytes, dict[str, str]]:
@@ -94,6 +98,7 @@ def get_bytes(url: str, accept: str, redirect_host: str | None = None) -> tuple[
             raise BlockedError(
                 f"{source_host} returned HTTP {exc.code}; stopped this source without retrying.",
                 source=source_host,
+                http_status=exc.code,
             ) from exc
         response_headers = _headers(exc.headers)
         if 300 <= exc.code < 400 and "location" in response_headers:
@@ -101,18 +106,21 @@ def get_bytes(url: str, accept: str, redirect_host: str | None = None) -> tuple[
             raise ProviderError(
                 f"{source_host} returned a redirect; redirect not followed.",
                 source=source_host,
+                http_status=exc.code,
             ) from exc
-        body = _read_limited(exc, 16384, source_host)
+        body = _read_limited(exc, 16384, source_host, exc.code)
         if _is_challenge(body, response_headers):
             raise BlockedError(
                 f"{source_host} returned a challenge page; stopped this source without retrying.",
                 source=source_host,
+                http_status=exc.code,
             ) from exc
         if exc.code == 404:
             return 404, body, response_headers
         raise ProviderError(
             f"{source_host} returned HTTP {exc.code}; no retry was made.",
             source=source_host,
+            http_status=exc.code,
         ) from exc
     except (URLError, TimeoutError, OSError) as exc:
         raise ProviderError(
@@ -123,14 +131,23 @@ def get_bytes(url: str, accept: str, redirect_host: str | None = None) -> tuple[
     with response:
         status = int(response.status)
         response_headers = _headers(response.headers)
-        body = _read_limited(response, MAX_RESPONSE_BYTES + 1, source_host)
+        body = _read_limited(response, MAX_RESPONSE_BYTES + 1, source_host, status)
     if status in {401, 403, 429} or _is_challenge(body, response_headers):
         raise BlockedError(
             f"{source_host} returned HTTP {status} or a challenge page; stopped this source without retrying.",
             source=source_host,
+            http_status=status,
         )
     if status >= 400:
-        raise ProviderError(f"{source_host} returned HTTP {status}; no retry was made.", source=source_host)
+        raise ProviderError(
+            f"{source_host} returned HTTP {status}; no retry was made.",
+            source=source_host,
+            http_status=status,
+        )
     if len(body) > MAX_RESPONSE_BYTES:
-        raise ProviderError(f"{source_host} response exceeded the 32 MiB safety limit.", source=source_host)
+        raise ProviderError(
+            f"{source_host} response exceeded the 32 MiB safety limit.",
+            source=source_host,
+            http_status=status,
+        )
     return status, body, response_headers

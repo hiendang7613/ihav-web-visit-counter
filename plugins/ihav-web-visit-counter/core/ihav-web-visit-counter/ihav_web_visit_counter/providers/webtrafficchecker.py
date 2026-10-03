@@ -8,12 +8,13 @@ from urllib.parse import urlencode
 
 from ..errors import ProviderError
 from ..http import get_bytes
-from ..models import VisitResult
+from ..models import ProviderTrace, VisitResult
 
 
 BASE_URL = "https://webtrafficchecker.com/api/traffic"
 DISPLAY_URL = "https://webtrafficchecker.com/traffic/"
 SOURCE_NAME = "WebTrafficChecker"
+PROVIDER_ID = "webtrafficchecker"
 
 
 def _as_positive_int(value: object) -> int | None:
@@ -84,18 +85,20 @@ def _countries(value: object) -> list[dict[str, object]] | None:
     return output or None
 
 
-def lookup(domain: str, original_input: str, cache=None) -> VisitResult | None:
+def lookup(domain: str, original_input: str, cache=None, trace: ProviderTrace | None = None) -> VisitResult | None:
     query = urlencode({"domain": domain})
     url = f"{BASE_URL}?{query}"
     status, body, _headers = get_bytes(url, "application/json")
+    if trace is not None:
+        trace.http_status = status
     if status == 404:
         return None
     try:
         payload = json.loads(body.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise ProviderError("WebTrafficChecker returned invalid JSON; no retry was made.", SOURCE_NAME) from exc
+        raise ProviderError("WebTrafficChecker returned invalid JSON; no retry was made.", SOURCE_NAME, status) from exc
     if not isinstance(payload, dict):
-        raise ProviderError("WebTrafficChecker returned an unexpected JSON shape; no retry was made.", SOURCE_NAME)
+        raise ProviderError("WebTrafficChecker returned an unexpected JSON shape; no retry was made.", SOURCE_NAME, status)
 
     payload_domain = payload.get("domain")
     if isinstance(payload_domain, str) and payload_domain.lower().removeprefix("www.") != domain.lower().removeprefix("www."):

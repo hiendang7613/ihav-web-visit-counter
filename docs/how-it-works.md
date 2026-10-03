@@ -22,3 +22,24 @@ Runtime files use `./.ihav_space/ihav-web-visit-counter/` relative to the proces
 - `estimate`: `monthly_visits` is an integer for WebTrafficChecker and `null` for TrafficLens. `monthly_visits_text` is the display string: comma-grouped for WebTrafficChecker or TrafficLens's returned rounded string. The result also carries the source-specific analysis/scrape timestamp; a stale TrafficLens value remains marked stale. Neither provider has a measured error interval in this release.
 - `rank_only`: Tranco rank with `monthly_visits: null` and `monthly_visits_text: null`.
 - No matching data and no provider error: CLI exit `2`; it does not invent a number.
+
+## JSON contract
+
+JSON success and error objects both include the integer `contract_version` and a top-level `providers` array. Version `1` describes the result and error fields before these additions. Version `2` adds `contract_version: 2` and structured provider outcomes without changing the existing result fields or exit codes.
+
+Each provider entry has this shape:
+
+```json
+{
+  "name": "webtrafficchecker",
+  "outcome": "blocked",
+  "http_status": 403,
+  "detail": "The source refused this request."
+}
+```
+
+`name` is one of `webtrafficchecker`, `trafficlens`, or `tranco`. Entries follow provider order. The CLI includes attempted providers and marks later providers `skipped` after a usable result. `outcome` is `ok`, `no_data`, `blocked`, `failed`, `skipped`, or `cached`. `detail` is short human-readable text; consumers must branch on the structured fields, not its wording.
+
+`http_status` is the HTTP status returned by the provider API. It never uses a nested target-site status such as a DNS status. A challenge page can be `blocked` with HTTP `200`; a transport failure has `http_status: null`. A cache hit has one `cached` entry for the provider that supplied the value. Its `fetched_at` and any available `http_status` refer to the original successful fetch. The cache entry does not repeat an earlier provider block as a current outcome.
+
+Error JSON keeps the existing `error` object and its `notes` strings. It adds the same top-level `contract_version` and `providers` fields. Invalid input has an empty provider array. Exit codes remain `0`, `2`, `4`, `5`, and `64` with their existing meanings.

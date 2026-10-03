@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Sequence
 
 from .errors import InvalidInputError, VisitError
+from .models import CONTRACT_VERSION
 from .render import render
 from .service import lookup
 
@@ -48,6 +49,7 @@ def _write_error(
     source: str | None,
     json_mode: bool,
     notes: Sequence[str] | None = None,
+    providers: Sequence[dict[str, object]] | None = None,
 ) -> int:
     error: dict[str, object] = {"code": code, "message": message}
     if source:
@@ -55,7 +57,16 @@ def _write_error(
     if notes:
         error["notes"] = list(notes)
     if json_mode:
-        print(json.dumps({"error": error}, ensure_ascii=False))
+        print(
+            json.dumps(
+                {
+                    "contract_version": CONTRACT_VERSION,
+                    "providers": list(providers or []),
+                    "error": error,
+                },
+                ensure_ascii=False,
+            )
+        )
     else:
         print(f"Error: {message}", file=sys.stderr)
         for note in notes or []:
@@ -79,7 +90,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         result = lookup(args.website, args.cache_dir)
     except InvalidInputError as exc:
-        return _write_error(exc.message, exc.code, exc.exit_code, exc.source, args.json)
+        return _write_error(exc.message, exc.code, exc.exit_code, exc.source, args.json, providers=exc.providers)
     except VisitError as exc:
         return _write_error(
             exc.message,
@@ -88,14 +99,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             exc.source,
             args.json,
             getattr(exc, "notes", None),
+            exc.providers,
         )
-    except Exception:
+    except Exception as exc:
         return _write_error(
             "Unexpected internal error; no retry was made.",
             "internal_error",
             5,
             None,
             args.json,
+            providers=getattr(exc, "providers", None),
         )
 
     if args.json:

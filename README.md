@@ -71,7 +71,11 @@ python3 scripts/visits.py https://www.example.com/pricing --json
 
 On Windows, use `py -3` in place of `python3`.
 
-The JSON output follows a stable result contract. Expected exit codes:
+The JSON output uses contract version `2`. Success and error objects include a top-level `providers` array. Each entry has `name`, `outcome`, `http_status`, and `detail`. Provider names are `webtrafficchecker`, `trafficlens`, or `tranco`; outcomes are `ok`, `no_data`, `blocked`, `failed`, `skipped`, or `cached`. Entries follow provider order. After a provider returns a result, later providers appear as `skipped`.
+
+`http_status` reports the provider API response only. A provider can return a challenge page with HTTP `200`; that outcome is `blocked`. A network failure has a null status. On a cache hit, the array names the provider whose value was cached, uses outcome `cached`, and keeps the original `fetched_at`. It does not report a prior provider block as current. Use these fields to detect blocks; `detail` and `error.notes` are for people and can change wording.
+
+Expected exit codes:
 
 | Code | Meaning |
 |---:|---|

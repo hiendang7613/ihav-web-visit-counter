@@ -29,8 +29,9 @@ class HTTPPolicyTests(unittest.TestCase):
     def test_http_403_stops_after_one_request(self):
         blocked = HTTPError("https://webtrafficchecker.com/api/traffic", 403, "Forbidden", {}, BytesIO(b"Access denied"))
         with patch("ihav_web_visit_counter.http._OPENER.open", side_effect=blocked) as opener:
-            with self.assertRaises(BlockedError):
+            with self.assertRaises(BlockedError) as raised:
                 get_bytes("https://webtrafficchecker.com/api/traffic?domain=example.com", "application/json")
+        self.assertEqual(raised.exception.http_status, 403)
         opener.assert_called_once()
         request = opener.call_args.args[0]
         self.assertEqual(request.get_header("User-agent"), USER_AGENT)
@@ -65,8 +66,9 @@ class HTTPPolicyTests(unittest.TestCase):
         response.status = 200
         response.headers = {"Content-Type": "text/html; charset=utf-8"}
         with patch("ihav_web_visit_counter.http._OPENER.open", return_value=response):
-            with self.assertRaises(BlockedError):
+            with self.assertRaises(BlockedError) as raised:
                 get_bytes("https://webtrafficchecker.com/api/traffic", "application/json")
+        self.assertEqual(raised.exception.http_status, 200)
 
     def test_truncated_response_body_maps_to_provider_error(self):
         class TruncatedResponse:

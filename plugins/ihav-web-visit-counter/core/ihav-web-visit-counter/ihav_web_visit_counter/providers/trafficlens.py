@@ -10,12 +10,13 @@ from decimal import Decimal, InvalidOperation
 
 from ..errors import ProviderError
 from ..http import get_bytes
-from ..models import VisitResult
+from ..models import ProviderTrace, VisitResult
 
 
 BASE_URL = "https://traffic-lens-api.admin-d10.workers.dev/api/analyze/"
 DISPLAY_URL = "https://trafficlens.io/"
 SOURCE_NAME = "TrafficLens"
+PROVIDER_ID = "trafficlens"
 _VISIT_STRING = re.compile(r"^\d+(?:\.\d+)?[KMBT]?$", re.IGNORECASE)
 
 
@@ -76,17 +77,19 @@ def _countries(value: object) -> list[dict[str, object]] | None:
     return countries or None
 
 
-def lookup(domain: str, original_input: str, cache=None) -> VisitResult | None:
+def lookup(domain: str, original_input: str, cache=None, trace: ProviderTrace | None = None) -> VisitResult | None:
     url = f"{BASE_URL}{domain}"
     status, body, _headers = get_bytes(url, "application/json")
+    if trace is not None:
+        trace.http_status = status
     if status == 404:
         return None
     try:
         payload = json.loads(body.decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise ProviderError("TrafficLens returned invalid JSON; no retry was made.", SOURCE_NAME) from exc
+        raise ProviderError("TrafficLens returned invalid JSON; no retry was made.", SOURCE_NAME, status) from exc
     if not isinstance(payload, dict):
-        raise ProviderError("TrafficLens returned an unexpected JSON shape; no retry was made.", SOURCE_NAME)
+        raise ProviderError("TrafficLens returned an unexpected JSON shape; no retry was made.", SOURCE_NAME, status)
 
     payload_domain = payload.get("domain")
     if not isinstance(payload_domain, str):

@@ -10,12 +10,13 @@ from datetime import datetime, timezone
 from ..cache import Cache, CachedBytes
 from ..errors import ProviderError
 from ..http import get_bytes
-from ..models import VisitResult
+from ..models import ProviderTrace, VisitResult
 
 
 LIST_URL = "https://tranco-list.eu/top-1m.csv.zip"
 LIST_CACHE_NAME = "tranco-top-1m.csv.zip"
 SOURCE_NAME = "Tranco"
+PROVIDER_ID = "tranco"
 MAX_UNZIPPED_BYTES = 100 * 1024 * 1024
 
 
@@ -67,7 +68,7 @@ def rank_in_list(body: bytes, domain: str) -> int | None:
     return None
 
 
-def _get_daily_list(cache: Cache) -> CachedBytes:
+def _get_daily_list(cache: Cache, trace: ProviderTrace | None = None) -> CachedBytes:
     cached = cache.get_daily_blob(LIST_CACHE_NAME)
     if cached is not None:
         return cached
@@ -76,15 +77,27 @@ def _get_daily_list(cache: Cache) -> CachedBytes:
         "application/zip, text/csv;q=0.9, */*;q=0.1",
         redirect_host="tranco-list.eu",
     )
+    if trace is not None:
+        trace.http_status = status
     if status != 200:
-        raise ProviderError(f"Tranco returned HTTP {status} for its daily list.", SOURCE_NAME)
+        raise ProviderError(f"Tranco returned HTTP {status} for its daily list.", SOURCE_NAME, status)
     # Parse before storing so a corrupt or unexpected download is never retained as a fresh list.
-    _csv_bytes(body)
+    try:
+        _csv_bytes(body)
+    except ProviderError as exc:
+        if exc.http_status is None:
+            exc.http_status = status
+        raise
     return cache.put_daily_blob(LIST_CACHE_NAME, body)
 
 
-def lookup(domain: str, original_input: str, cache: Cache) -> VisitResult | None:
-    daily_list = _get_daily_list(cache)
+def lookup(
+    domain: str,
+    original_input: str,
+    cache: Cache,
+    trace: ProviderTrace | None = None,
+) -> VisitResult | None:
+    daily_list = _get_daily_list(cache, trace)
     rank = rank_in_list(daily_list.body, domain)
     if rank is None:
         return None

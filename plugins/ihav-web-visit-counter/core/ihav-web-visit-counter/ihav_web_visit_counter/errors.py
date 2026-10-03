@@ -9,10 +9,12 @@ class VisitError(Exception):
     exit_code = 5
     code = "source_error"
 
-    def __init__(self, message: str, source: str | None = None):
+    def __init__(self, message: str, source: str | None = None, http_status: int | None = None):
         super().__init__(message)
         self.message = message
         self.source = source
+        self.http_status = http_status
+        self.providers: list[dict[str, object]] = []
 
 
 class InvalidInputError(VisitError):
@@ -24,9 +26,15 @@ class NoDataError(VisitError):
     exit_code = 2
     code = "no_data"
 
-    def __init__(self, message: str, notes: list[str] | None = None):
+    def __init__(
+        self,
+        message: str,
+        notes: list[str] | None = None,
+        providers: list[dict[str, object]] | None = None,
+    ):
         super().__init__(message)
         self.notes = list(notes or [])
+        self.providers = list(providers or [])
 
 
 class BlockedError(VisitError):
@@ -42,3 +50,8 @@ class ProviderError(VisitError):
 class CacheError(VisitError):
     exit_code = 5
     code = "cache_error"
+
+
+class InternalError(VisitError):
+    exit_code = 5
+    code = "internal_error"
