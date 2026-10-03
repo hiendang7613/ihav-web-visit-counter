@@ -1,13 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.1.0 — 2026-10-04
 
 - Add a CI badge, agent install prompts, a short FAQ and a PNG social preview; use friendly provider names in JSON failure details.
-
 - Add JSON contract version `2` and structured per-provider outcomes to success and error output while preserving existing result fields and exit codes.
 - Record provider API HTTP status separately from payload fields, and identify cached provider results without replaying an earlier block as current.
-
-## 0.1.0 — 2026-10-03
 
 - Add Claude Code and Codex skills backed by one Python standard-library CLI.
 - Add WebTrafficChecker modelled estimates with source, analysis timestamp, returned country shares and returned history.
