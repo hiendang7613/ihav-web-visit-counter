@@ -33,18 +33,38 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _write_error(message: str, code: str, exit_code: int, source: str | None, json_mode: bool) -> int:
+def configure_stdio() -> None:
+    """Use UTF-8 for agent and terminal output when the stream supports it."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if callable(reconfigure):
+            reconfigure(encoding="utf-8", errors="replace")
+
+
+def _write_error(
+    message: str,
+    code: str,
+    exit_code: int,
+    source: str | None,
+    json_mode: bool,
+    notes: Sequence[str] | None = None,
+) -> int:
     error: dict[str, object] = {"code": code, "message": message}
     if source:
         error["source"] = source
+    if notes:
+        error["notes"] = list(notes)
     if json_mode:
         print(json.dumps({"error": error}, ensure_ascii=False))
     else:
         print(f"Error: {message}", file=sys.stderr)
+        for note in notes or []:
+            print(f"Note: {note}", file=sys.stderr)
     return exit_code
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    configure_stdio()
     arguments = list(sys.argv[1:] if argv is None else argv)
     json_mode = "--json" in arguments
     parser = _parser()
@@ -61,7 +81,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     except InvalidInputError as exc:
         return _write_error(exc.message, exc.code, exc.exit_code, exc.source, args.json)
     except VisitError as exc:
-        return _write_error(exc.message, exc.code, exc.exit_code, exc.source, args.json)
+        return _write_error(
+            exc.message,
+            exc.code,
+            exc.exit_code,
+            exc.source,
+            args.json,
+            getattr(exc, "notes", None),
+        )
     except Exception:
         return _write_error(
             "Unexpected internal error; no retry was made.",

@@ -15,6 +15,14 @@ def _provider_name(provider) -> str:
     return getattr(provider, "SOURCE_NAME", provider.__name__.rsplit(".", 1)[-1])
 
 
+def _failure_note(provider, error: VisitError) -> str:
+    name = _provider_name(provider)
+    detail = error.message
+    if error.source:
+        detail = detail.replace(error.source, name)
+    return f"{name} failed: {detail}"
+
+
 def _with_cache_notes(result: VisitResult, cache: Cache) -> VisitResult:
     for warning in cache.warnings:
         if warning not in result.notes:
@@ -33,16 +41,19 @@ def lookup(input_value: str, cache_dir: Path | None = None) -> VisitResult:
 
     failures: list[tuple[object, VisitError]] = []
     outcomes: list[tuple[object, str]] = []
-    for provider in PROVIDERS:
+    primary_no_data = False
+    for index, provider in enumerate(PROVIDERS):
         name = _provider_name(provider)
         try:
             result = provider.lookup(domain, input_value, cache)
         except (BlockedError, ProviderError) as exc:
             failures.append((provider, exc))
-            outcomes.append((provider, f"{name} failed: {exc.message}"))
+            outcomes.append((provider, _failure_note(provider, exc)))
             continue
 
         if result is None:
+            if index == 0:
+                primary_no_data = True
             outcomes.append((provider, f"{name} returned no usable result"))
             continue
 
@@ -55,6 +66,17 @@ def lookup(input_value: str, cache_dir: Path | None = None) -> VisitResult:
         if result.kind == "estimate":
             cache.put_result(result)
         return _with_cache_notes(result, cache)
+
+    if primary_no_data:
+        later_failure_notes = [
+            _failure_note(provider, error)
+            for provider, error in failures
+            if provider is not PROVIDERS[0]
+        ]
+        raise NoDataError(
+            f"No usable visit estimate or rank was available for {domain}; no visits were inferred.",
+            notes=later_failure_notes,
+        )
 
     if failures:
         first_provider, first_error = failures[0]

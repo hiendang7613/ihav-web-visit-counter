@@ -5,7 +5,7 @@ import sys
 import tempfile
 import unittest
 from contextlib import redirect_stdout, redirect_stderr
-from io import StringIO
+from io import BytesIO, StringIO, TextIOWrapper
 from pathlib import Path
 from unittest.mock import patch
 
@@ -53,6 +53,24 @@ class CliTests(unittest.TestCase):
         self.assertIn("History snapshots 2026-08-13 → 2026-09-11", human_out.getvalue())
         self.assertIn("Cached result", human_out.getvalue())
         self.assertIn("webtrafficchecker.com", human_out.getvalue())
+
+    def test_cli_reconfigures_cp1252_pipe_to_utf8_for_history_card(self):
+        result = fixture_result()
+        output = BytesIO()
+        stream = TextIOWrapper(output, encoding="cp1252", errors="strict")
+        try:
+            with tempfile.TemporaryDirectory() as temporary:
+                with patch("ihav_web_visit_counter.providers.webtrafficchecker.lookup", return_value=result):
+                    with redirect_stdout(stream):
+                        exit_code = cli.main(["github.com", "--cache-dir", temporary])
+            stream.flush()
+            rendered = output.getvalue().decode("utf-8")
+            self.assertEqual(stream.encoding.lower().replace("-", ""), "utf8")
+            self.assertEqual(exit_code, 0)
+            self.assertIn("2026-08-13 → 2026-09-11", rendered)
+            self.assertIn("▁█", rendered)
+        finally:
+            stream.detach()
 
     def test_cli_rejects_invalid_input_without_provider_calls(self):
         stderr = StringIO()
@@ -167,6 +185,29 @@ class CliTests(unittest.TestCase):
         self.assertEqual(stderr.getvalue(), "")
         middle.assert_called_once()
         fallback.assert_called_once()
+
+    def test_primary_no_data_with_later_failures_exits_no_data_with_friendly_notes(self):
+        cases = [
+            (ProviderError("traffic-lens-api.admin-d10.workers.dev returned HTTP 503", "traffic-lens-api.admin-d10.workers.dev"), "503"),
+            (BlockedError("traffic-lens-api.admin-d10.workers.dev returned HTTP 429; stopped", "traffic-lens-api.admin-d10.workers.dev"), "429"),
+        ]
+        for error, detail in cases:
+            with self.subTest(detail=detail):
+                stdout = StringIO()
+                with tempfile.TemporaryDirectory() as temporary:
+                    with patch("ihav_web_visit_counter.providers.webtrafficchecker.lookup", return_value=None):
+                        with patch("ihav_web_visit_counter.providers.trafficlens.lookup", side_effect=error):
+                            with patch("ihav_web_visit_counter.providers.tranco.lookup", return_value=None):
+                                with redirect_stdout(stdout):
+                                    exit_code = cli.main(["unknown.example", "--json", "--cache-dir", temporary])
+
+                payload = json.loads(stdout.getvalue())
+                self.assertEqual(exit_code, 2)
+                self.assertEqual(payload["error"]["code"], "no_data")
+                self.assertEqual(len(payload["error"]["notes"]), 1)
+                self.assertIn("TrafficLens failed", payload["error"]["notes"][0])
+                self.assertIn(detail, payload["error"]["notes"][0])
+                self.assertNotIn("traffic-lens-api.admin-d10.workers.dev", payload["error"]["notes"][0])
 
     def test_unexpected_exception_returns_stable_json_without_traceback(self):
         stdout = StringIO()

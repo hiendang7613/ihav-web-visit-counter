@@ -18,6 +18,7 @@ from .models import VisitResult, result_from_dict
 
 RESULT_TTL_SECONDS = 24 * 60 * 60
 LIST_TTL_SECONDS = 24 * 60 * 60
+CLOCK_SKEW_TOLERANCE_SECONDS = 1
 
 
 @dataclass
@@ -61,7 +62,9 @@ class Cache:
         except OSError as exc:
             self._warn(path, "read", str(exc))
             return False
-        return 0 <= age < ttl
+        # Windows can report a file timestamp slightly ahead of time.time() on
+        # older Python versions. Treat that small clock skew as a fresh entry.
+        return -CLOCK_SKEW_TOLERANCE_SECONDS <= age < ttl
 
     @staticmethod
     def _atomic_write(path: Path, body: bytes) -> None:

@@ -23,6 +23,8 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(claude["version"], "0.1.0")
         self.assertEqual(claude["license"], codex["license"])
         self.assertEqual(claude["license"], "MIT")
+        self.assertIn("TrafficLens", codex["interface"]["longDescription"])
+        self.assertNotIn("reporting period", codex["interface"]["longDescription"].lower())
 
     def test_both_marketplaces_point_to_the_plugin_and_skill_paths_exist(self):
         claude_market = load(ROOT / ".claude-plugin/marketplace.json")
@@ -34,6 +36,7 @@ class ManifestTests(unittest.TestCase):
         self.assertTrue((PLUGIN / "claude/skills/ihav-web-visit-counter/SKILL.md").is_file())
         self.assertTrue((PLUGIN / "core/ihav-web-visit-counter/SKILL.md").is_file())
         self.assertFalse((ROOT / "skills").exists())
+        self.assertIn("analysis date", claude_market["plugins"][0]["description"])
 
 
 if __name__ == "__main__":

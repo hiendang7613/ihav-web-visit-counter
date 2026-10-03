@@ -50,6 +50,12 @@ class TrafficLensTests(unittest.TestCase):
             "application/json",
         )
 
+    def test_country_shares_are_rounded_to_four_decimal_places(self):
+        self.assertEqual(
+            trafficlens._countries([{"country": "India", "percentage": 10.3}]),
+            [{"country": "India", "share": 0.103}],
+        )
+
     def test_stale_value_renders_raw_approximate_count_and_scrape_date(self):
         with patch.object(trafficlens, "get_bytes", return_value=(200, fixture("stale-github.json"), {})):
             result = trafficlens.lookup("github.com", "github.com", cache=None)

@@ -13,3 +13,7 @@
 - Run Tranco after a primary block or failure, keep its rank-only result uncached, and treat cache failures as warnings.
 - Support Python 3.9, bound Tranco redirects to its HTTPS host, and retain the latest dated history snapshot for each month.
 - Use the package version in the HTTP User-Agent and clarify that refused redirects are not followed.
+- Reconfigure CLI output streams to UTF-8 for agent pipes and add a fixture-backed Windows pipe smoke check.
+- Tolerate small future file timestamp skew so cached results and daily lists remain fresh on Windows.
+- Return no-data with friendly notes when a primary has no result and later providers fail; round country shares to four decimal places.
+- Clarify fallback error codes, describe TrafficLens in the Codex listing, and identify source timestamps as analysis or scrape dates rather than guaranteed reporting months.

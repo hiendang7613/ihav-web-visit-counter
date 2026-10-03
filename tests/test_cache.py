@@ -4,6 +4,7 @@ import os
 import sys
 import tempfile
 import unittest
+from hashlib import sha256
 from pathlib import Path
 from unittest.mock import patch
 
@@ -13,6 +14,7 @@ CORE = ROOT / "plugins/ihav-web-visit-counter/core/ihav-web-visit-counter"
 sys.path.insert(0, str(CORE))
 
 from ihav_web_visit_counter.cache import Cache, default_cache_dir
+from ihav_web_visit_counter.providers import webtrafficchecker
 
 
 class CachePathTests(unittest.TestCase):
@@ -46,6 +48,29 @@ class CachePathTests(unittest.TestCase):
             cached = cache.put_daily_blob("tranco.zip", b"fixture")
         self.assertEqual(cached.body, b"fixture")
         self.assertTrue(any("continuing without it" in warning for warning in cache.warnings))
+
+    def test_cache_tolerates_small_future_mtime_skew_for_results_and_daily_lists(self):
+        fixture = (Path(__file__).parent / "fixtures/webtrafficchecker/github.json").read_bytes()
+        with patch.object(webtrafficchecker, "get_bytes", return_value=(200, fixture, {})):
+            result = webtrafficchecker.lookup("github.com", "github.com")
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            cache = Cache(root)
+            cache.put_result(result)
+            result_path = root / "results" / f"{sha256(b'github.com').hexdigest()}.json"
+            result_mtime = result_path.stat().st_mtime
+            with patch("ihav_web_visit_counter.cache.time.time", return_value=result_mtime - 0.02):
+                self.assertIsNotNone(cache.get_result("github.com"))
+
+            cache.put_daily_blob("daily.zip", b"fixture archive")
+            archive_path = root / "sources" / "daily.zip"
+            archive_mtime = archive_path.stat().st_mtime
+            with patch("ihav_web_visit_counter.cache.time.time", return_value=archive_mtime - 0.02):
+                cached_archive = cache.get_daily_blob("daily.zip")
+
+        self.assertIsNotNone(cached_archive)
+        self.assertEqual(cached_archive.body, b"fixture archive")
 
 
 if __name__ == "__main__":

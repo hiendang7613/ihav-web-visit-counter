@@ -72,7 +72,7 @@ def _countries(value: object) -> list[dict[str, object]] | None:
         if not isinstance(country, str) or isinstance(percentage, bool):
             continue
         try:
-            share = float(percentage) / 100.0
+            share = round(float(percentage) / 100.0, 4)
         except (TypeError, ValueError, OverflowError):
             continue
         if 0 <= share <= 1:

@@ -13,6 +13,8 @@ One provider supplies each returned estimate. The plugin never averages or merge
 
 The result cache is best-effort. If its directory cannot be read or written, the lookup continues and adds a cache warning to the result. Since estimate results from every provider are cached, a cached TrafficLens estimate can delay rechecking a recovered WebTrafficChecker for up to 24 hours. This is an accepted trade-off to reduce repeat requests to TrafficLens.
 
+If WebTrafficChecker definitively returns no usable result and later providers also return no result, exit code `2` is used even when a later source fails; each later failure appears in `error.notes` in JSON mode. Exit codes `4` and `5` are used when the primary is blocked or fails and no fallback returns data; `5` also covers an unexpected internal error. A blocked provider is never retried.
+
 Runtime files use `./.ihav_space/ihav-web-visit-counter/` relative to the process working directory. `IHAV_CACHE_DIR` and `--cache-dir` can override the cache location.
 
 ## Result kinds

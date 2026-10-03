@@ -24,6 +24,10 @@ class NoDataError(VisitError):
     exit_code = 2
     code = "no_data"
 
+    def __init__(self, message: str, notes: list[str] | None = None):
+        super().__init__(message)
+        self.notes = list(notes or [])
+
 
 class BlockedError(VisitError):
     exit_code = 4

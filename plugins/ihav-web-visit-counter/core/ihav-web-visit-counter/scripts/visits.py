@@ -15,7 +15,10 @@ if sys.version_info < (3, 9):
 SKILL_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(SKILL_ROOT))
 
-from ihav_web_visit_counter.cli import main
+from ihav_web_visit_counter.cli import configure_stdio, main
+
+
+configure_stdio()
 
 
 if __name__ == "__main__":

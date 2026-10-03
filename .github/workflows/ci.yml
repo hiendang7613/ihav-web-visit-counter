@@ -15,17 +15,23 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python: ['3.9', '3.11', '3.13']
+        exclude:
+          # setup-python does not support Python <3.11 on macOS arm64.
+          - os: macos-latest
+            python: '3.9'
+        include:
+          # Keep Python 3.9 coverage on the last supported Intel macOS image.
+          - os: macos-15-intel
+            python: '3.9'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python }}
       - name: Run fixture-only tests
         run: python -m unittest discover -s tests -v
-      - name: Smoke test the CLI on Windows
+      - name: Smoke test the CLI help with the selected Python
+        run: python plugins/ihav-web-visit-counter/core/ihav-web-visit-counter/scripts/visits.py --help
+      - name: Smoke test fixture lookup through the Windows output pipe
         if: runner.os == 'Windows'
-        shell: pwsh
-        run: py -3 plugins/ihav-web-visit-counter/core/ihav-web-visit-counter/scripts/visits.py --help
-      - name: Smoke test the CLI on macOS and Linux
-        if: runner.os != 'Windows'
-        run: python3 plugins/ihav-web-visit-counter/core/ihav-web-visit-counter/scripts/visits.py --help
+        run: python tests/fixture_cli_smoke.py

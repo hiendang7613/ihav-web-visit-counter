@@ -9,7 +9,7 @@
   "interface": {
     "displayName": "ihav-web-visit-counter",
     "shortDescription": "Website traffic estimates with analysis date and rank-only fallback",
-    "longDescription": "Give a URL or domain. Get a provider-modelled monthly visits estimate with its analysis date and source link. If that source has no result, get a Tranco rank with monthly visits left unknown. No API key, paid service or browser is required.",
+    "longDescription": "Give a URL or domain. Get a WebTrafficChecker estimate, a possible rounded or stale TrafficLens estimate, or a Tranco rank with visits left unknown. Each result includes its source and analysis or scrape date; these dates are not guaranteed reporting months. No API key, paid service or browser is required.",
     "developerName": "hiendang7613",
     "category": "Productivity",
     "capabilities": ["Interactive"],

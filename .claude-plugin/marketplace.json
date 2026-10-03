@@ -8,7 +8,7 @@
       "name": "ihav-web-visit-counter",
       "source": "./plugins/ihav-web-visit-counter",
       "category": "productivity",
-      "description": "Monthly traffic estimates with source and period, plus a rank-only fallback."
+      "description": "Monthly traffic estimates with source and analysis date or scrape date, plus a rank-only fallback."
     }
   ]
 }

@@ -76,9 +76,9 @@ The JSON output follows a stable result contract. Expected exit codes:
 | Code | Meaning |
 |---:|---|
 | `0` | Estimate or rank result returned |
-| `2` | Neither source returned a matching result and neither reported a provider error |
-| `4` | Access refused, rate-limited, or a challenge was detected; the source stops without retry |
-| `5` | Network/download failure or provider error when no fallback succeeds |
+| `2` | The primary returned no usable result and no later provider returned data; later failures are listed in `error.notes` |
+| `4` | The primary was blocked by access refusal, rate limit, or challenge and no fallback returned data; do not rerun this domain |
+| `5` | The primary had a network or provider failure and no fallback returned data, or an internal error occurred |
 | `64` | Invalid input or command arguments |
 
 Estimate results are cached for 24 hours; rank-only results are not cached. A cached TrafficLens estimate can delay rechecking a recovered WebTrafficChecker for up to 24 hours. This accepted trade-off reduces repeat requests to TrafficLens. Runtime files are written under `./.ihav_space/ihav-web-visit-counter/` in the current working directory. Set `IHAV_CACHE_DIR` or pass `--cache-dir` to use another location. Add `.ihav_space/` to your project's `.gitignore` if you do not want runtime data tracked.
@@ -87,7 +87,7 @@ Estimate results are cached for 24 hours; rank-only results are not cached. A ca
 
 | Kind | What you receive | What it does not mean |
 |---|---|---|
-| `estimate` | `monthly_visits` is a number for WebTrafficChecker and `null` for TrafficLens. `monthly_visits_text` is the display string: comma-grouped for WebTrafficChecker or the provider's rounded string such as `631.0M` for TrafficLens. The source, date and returned country shares/history are also included. | It is not website-owner analytics. WebTrafficChecker's `analyzedAt` is an analysis timestamp; TrafficLens's `scrapedAt` is a scrape timestamp, not a reporting month. A stale TrafficLens value stays marked stale. Neither source publishes a measured error interval in the observed responses. |
+| `estimate` | `monthly_visits` is an integer for WebTrafficChecker and `null` for TrafficLens. `monthly_visits_text` is the display string: comma-grouped for WebTrafficChecker or the provider's original rounded string for TrafficLens. The source, date and returned country shares/history are also included. | It is not website-owner analytics. WebTrafficChecker's `analyzedAt` is an analysis timestamp; TrafficLens's `scrapedAt` is a scrape timestamp, not a reporting month. A stale TrafficLens value stays marked stale. Neither source publishes a measured error interval in the observed responses. |
 | `rank_only` | A rank from Tranco's downloaded daily top-1M list | A rank is not visits. Both `monthly_visits` and `monthly_visits_text` are `null`. |
 
 TrafficLens's rank-only response is skipped; it does not replace the final Tranco rank result or become visits. The plugin never converts rank to visits, averages or merges provider estimates, or creates a 12-month series when a provider has only a few history points. Each lookup returns one provider's result. In JSON, `monthly_visits` is always an integer or `null`; use `monthly_visits_text` for an estimate's display value when `monthly_visits` is `null`.
@@ -107,9 +107,9 @@ WebTrafficChecker describes the number as a modelled estimate based on ranking a
 
 Very small or unranked sites may return no visit number by design. When WebTrafficChecker marks a domain unranked (`isRanked: false`, rank zero or missing, or category `Unranked Website`), the plugin rejects its placeholder estimate and default country split. It continues to TrafficLens and Tranco; if neither supplies a usable visit count, the result does not include a visit number.
 
-WebTrafficChecker's `analyzed_at` timestamp is shown as “analyzed YYYY-MM-DD”. TrafficLens's `scraped_at` timestamp is shown as “scraped YYYY-MM-DD”; when its payload says `source=stale`, the output also says “stale”. Neither timestamp proves which start and end dates the provider used to compute `monthlyVisits`. TrafficLens may return a rounded string rather than an exact integer. History contains only points actually returned by the provider; it is not guaranteed to cover 12 months. Country shares are provider estimates, not site analytics.
+WebTrafficChecker's `analyzed_at` timestamp is shown as “analyzed YYYY-MM-DD”. TrafficLens's `scraped_at` timestamp is shown as “scraped YYYY-MM-DD”; when its payload says `source=stale`, the output also says “stale”. Neither timestamp proves which start and end dates the provider used to compute `monthlyVisits`. TrafficLens may return a rounded string rather than an exact integer. History contains only points actually returned by the provider; it is not guaranteed to cover 12 months. Country shares are provider estimates, not site analytics, and JSON shares are rounded to four decimal places.
 
-Tranco is a popularity ranking. If neither visits provider returns a usable estimate and the domain appears in its list, the plugin shows the rank and leaves visits unknown. If all three providers return no matching data, the CLI exits `2`. If the sources fail, the CLI preserves the first provider error when no fallback result is available.
+Tranco is a popularity ranking. If neither visits provider returns a usable estimate and the domain appears in its list, the plugin shows the rank and leaves visits unknown. If WebTrafficChecker returns no usable estimate and no later provider returns data, the CLI exits `2`; any later provider failures appear in the error's `notes` field. Exits `4` and `5` are reserved for a blocked or failed primary when no fallback returns a result.
 
 ## Data sources and terms
 

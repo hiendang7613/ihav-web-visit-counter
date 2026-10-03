@@ -41,6 +41,12 @@ class WebTrafficCheckerTests(unittest.TestCase):
         self.assertIn("webtrafficchecker.com", result.source["url"])
         self.assertIsNone(result.range)
 
+    def test_country_shares_are_rounded_to_four_decimal_places(self):
+        self.assertEqual(
+            webtrafficchecker._countries([{"countryCode": "IN", "percentage": 10.3}]),
+            [{"country": "IN", "share": 0.103}],
+        )
+
     def test_ranked_response_with_true_flag_keeps_its_estimate(self):
         payload = json.loads(self.fixture)
         payload["traffic"]["isRanked"] = True

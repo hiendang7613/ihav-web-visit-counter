@@ -72,7 +72,7 @@ def _countries(value: object) -> list[dict[str, object]] | None:
             continue
         if not math.isfinite(percentage_value) or not 0 <= percentage_value <= 100:
             continue
-        countries.append({"country": country, "share": percentage_value / 100.0})
+        countries.append({"country": country, "share": round(percentage_value / 100.0, 4)})
     return countries or None
 
 
