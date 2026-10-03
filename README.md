@@ -1,41 +1,50 @@
 <p align="center">
-  <img src="assets/hero.svg" alt="Website traffic estimate shown with its analysis date, source and country shares" width="100%">
+  <img src="assets/logo.svg" alt="ihav-web-visit-counter logo" width="88" height="88">
 </p>
 
 <h1 align="center">ihav-web-visit-counter</h1>
 
-<p align="center">Ask your coding agent how much traffic a website gets. See the estimate, its date and its source. If no estimate is available, see a rank instead of a guess.</p>
+<p align="center">Website traffic estimates, with dates and sources, inside Claude Code and Codex.</p>
 
 <p align="center">
   <a href="https://github.com/hiendang7613/ihav-web-visit-counter/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/hiendang7613/ihav-web-visit-counter/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://github.com/hiendang7613/ihav-web-visit-counter/releases/tag/v0.1.0"><img alt="Release v0.1.0" src="https://img.shields.io/badge/release-v0.1.0-4F46E5.svg"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-4F46E5.svg"></a>
-  <img alt="Python standard library only" src="https://img.shields.io/badge/runtime-Python%20stdlib-0F172A.svg">
+  <img alt="Python 3.9 or later" src="https://img.shields.io/badge/Python-3.9%2B-0F172A.svg">
   <img alt="Claude Code and Codex" src="https://img.shields.io/badge/works%20with-Claude%20Code%20%7C%20Codex-F59E0B.svg">
 </p>
 
 **A traffic estimate is not private analytics.** The plugin tries WebTrafficChecker, then TrafficLens for domains with a returned visit value, then a Tranco rank. TrafficLens coverage is partial and its sample was stale; every number keeps its source and date. No source has an independently measured error interval.
 
-[Install](#install) · [Demo](#demo) · [Usage](#usage) · [Accuracy](#accuracy-honestly) · [Sources and terms](#data-sources-and-terms)
+[Install](#install-in-30-seconds) · [Demo](#demo) · [Scripts](#use-from-scripts) · [Accuracy](#accuracy-honestly) · [Sources and terms](#data-sources-and-terms)
 
-## Install
+## Install in 30 seconds
 
 Requires Python 3.9 or later. The plugin core uses only the Python standard library. It does not need a paid account, API key, or browser.
 
-Paste the matching line into your coding agent to install it:
+1. Add the shared ihav catalog and install the plugin in your host.
 
-Claude Code:
+   **Claude Code**
 
-```text
-Install ihav-web-visit-counter by running: claude plugin marketplace add hiendang7613/ihav-web-visit-counter && claude plugin install ihav-web-visit-counter@ihav-web-visit-counter
-```
+   ```text
+   Install ihav-web-visit-counter by running: claude plugin marketplace add hiendang7613/ihav && claude plugin install ihav-web-visit-counter@ihav
+   ```
 
-Codex:
+   **Codex**
 
-```text
-Install ihav-web-visit-counter by running: codex plugin marketplace add hiendang7613/ihav-web-visit-counter && codex plugin add ihav-web-visit-counter@ihav-web-visit-counter
-```
+   ```text
+   Install ihav-web-visit-counter by running: codex plugin marketplace add hiendang7613/ihav && codex plugin add ihav-web-visit-counter@ihav
+   ```
 
-Or run the commands yourself:
+2. Restart Claude Code or Codex so it loads the installed skill.
+3. Ask: **“How many monthly visits does example.com get?”**
+
+In Claude Code, you can also type `/ihav-web-visit-counter example.com`. If another command owns the short name, use `/ihav-web-visit-counter:ihav-web-visit-counter`. In Codex, mention `$ihav-web-visit-counter:ihav-web-visit-counter` or ask in plain language.
+
+<details>
+<summary>Install directly from this repository</summary>
+
+Use this alternative if you want only this plugin's catalog.
 
 Claude Code:
 
@@ -51,7 +60,18 @@ codex plugin marketplace add hiendang7613/ihav-web-visit-counter
 codex plugin add ihav-web-visit-counter@ihav-web-visit-counter
 ```
 
-Restart the host after installation. Ask in plain language, or use `/ihav-web-visit-counter example.com` in Claude Code. If another command owns the short name, use `/ihav-web-visit-counter:ihav-web-visit-counter`. In Codex, mention `$ihav-web-visit-counter:ihav-web-visit-counter` or ask in plain language.
+</details>
+
+## What you get
+
+| Field | What appears | Limit |
+|---|---|---|
+| Monthly visits | A numeric estimate or the provider's rounded display value | No owner analytics or measured error interval |
+| Analysis date | Analysis or scrape date beside the value | Not a guaranteed reporting month |
+| Countries | Returned country shares | Available only when the provider supplies them |
+| History | Dated snapshots actually returned | No invented 12-month series |
+| Source link | The provider behind the result | One provider answers; numbers are never merged |
+| JSON contract v2 | Structured result and provider outcomes | Rank-only results keep visits `null` |
 
 ## Demo
 
@@ -79,6 +99,8 @@ Ask your agent:
 - “Show the traffic history for `example.com`.”
 - “Which countries appear in the estimate for `example.com`?”
 
+## Use from scripts
+
 From a terminal, run the bundled command from the plugin skill directory:
 
 ```bash
@@ -87,6 +109,26 @@ python3 scripts/visits.py https://www.example.com/pricing --json
 ```
 
 On Windows, use `py -3` in place of `python3`.
+
+This **synthetic JSON excerpt** shows the fields a consumer can use. The CLI also returns the provenance and optional fields described below.
+
+```json
+{
+  "contract_version": 2,
+  "domain": "example.com",
+  "kind": "estimate",
+  "monthly_visits": 2430000,
+  "monthly_visits_text": "2,430,000",
+  "period": null,
+  "analyzed_at": "2026-09-11T00:00:00Z",
+  "cached": false,
+  "providers": [
+    {"name": "webtrafficchecker", "outcome": "ok", "http_status": 200, "detail": null},
+    {"name": "trafficlens", "outcome": "skipped", "http_status": null, "detail": null},
+    {"name": "tranco", "outcome": "skipped", "http_status": null, "detail": null}
+  ]
+}
+```
 
 The JSON output uses contract version `2`. Success and error objects include a top-level `providers` array. Each entry has `name`, `outcome`, `http_status`, and `detail`. Provider names are `webtrafficchecker`, `trafficlens`, or `tranco`; outcomes are `ok`, `no_data`, `blocked`, `failed`, `skipped`, or `cached`. Entries follow provider order. After a provider returns a result, later providers appear as `skipped`.
 
@@ -114,6 +156,18 @@ Estimate results are cached for 24 hours; rank-only results are not cached. A ca
 TrafficLens's rank-only response is skipped; it does not replace the final Tranco rank result or become visits. The plugin never converts rank to visits, averages or merges provider estimates, or creates a 12-month series when a provider has only a few history points. Each lookup returns one provider's result. In JSON, `monthly_visits` is always an integer or `null`; use `monthly_visits_text` for an estimate's display value when `monthly_visits` is `null`.
 
 ## How it works
+
+```mermaid
+flowchart TD
+  W["WebTrafficChecker"] -->|No estimate, blocked or failed| L["TrafficLens"]
+  W -->|Usable estimate| E["Estimate: exit 0"]
+  L -->|Usable estimate| E
+  L -->|No estimate, blocked or failed| T["Tranco daily list"]
+  T -->|Rank found| R["Rank only: exit 0"]
+  T -->|No result| N["No data or error: exit 2 / 4 / 5"]
+```
+
+A fresh estimate cache returns before this chain. Invalid input exits `64`. Each source is tried once; a block stops requests to that source.
 
 1. Normalize the URL or domain while preserving subdomains other than a leading `www.`.
 2. Return the local 24-hour result cache when it is fresh.
@@ -163,6 +217,10 @@ The requested domain is sent to WebTrafficChecker. If it returns no usable visit
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Please include a saved response fixture for provider changes; tests must not contact live sites.
+
+Questions and ideas: [Discussions](https://github.com/hiendang7613/ihav-web-visit-counter/discussions).
+
+**Related ihav plugins:** Find the rest of the family in the [shared ihav catalog](https://github.com/hiendang7613/ihav).
 
 ## License
 

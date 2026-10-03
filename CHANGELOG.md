@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Refresh the README with shared-catalog installation, feature and JSON examples, a provider flowchart and related plugins.
+- Animate the synthetic terminal demo with a reduced-motion fallback and add issue navigation and a pull request template.
+
 ## 0.1.0 — 2026-10-04
 
 - Add a CI badge, agent install prompts, a short FAQ and a PNG social preview; use friendly provider names in JSON failure details.

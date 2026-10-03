@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/hiendang7613/ihav-web-visit-counter/discussions
+    about: Ask a question or suggest an improvement in Discussions.
+  - name: Shared ihav catalog
+    url: https://github.com/hiendang7613/ihav
+    about: Find installation instructions and the other ihav plugins.
