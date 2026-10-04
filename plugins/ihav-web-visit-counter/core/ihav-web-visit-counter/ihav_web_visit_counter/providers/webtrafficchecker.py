@@ -61,6 +61,30 @@ def _history(value: object) -> list[dict[str, object]] | None:
     return [by_month[key][1] for key in sorted(by_month)] or None
 
 
+# WebTrafficChecker returns this exact country split for unranked and many
+# low-traffic domains, so it is a placeholder rather than a measured split.
+DEFAULT_GEOGRAPHY = (("US", 45.2), ("IN", 10.3), ("BR", 6.5), ("GB", 6.5), ("DE", 5.2))
+DEFAULT_GEOGRAPHY_NOTE = (
+    "Country shares were omitted because WebTrafficChecker returned its default placeholder split, not a measured one."
+)
+
+
+def _is_default_geography(value: object) -> bool:
+    if not isinstance(value, list) or len(value) < len(DEFAULT_GEOGRAPHY):
+        return False
+    for row, (code, percentage) in zip(value, DEFAULT_GEOGRAPHY):
+        if not isinstance(row, dict):
+            return False
+        country = row.get("countryCode") or row.get("country")
+        try:
+            share = round(float(row.get("percentage")), 1)
+        except (TypeError, ValueError, OverflowError):
+            return False
+        if country != code or share != percentage:
+            return False
+    return True
+
+
 def _countries(value: object) -> list[dict[str, object]] | None:
     if not isinstance(value, list):
         return None
@@ -127,7 +151,8 @@ def lookup(domain: str, original_input: str, cache=None, trace: ProviderTrace | 
         "date": analyzed_at.date().isoformat(),
     }
     history = _history(payload.get("historicalRanks"))
-    countries = _countries(payload.get("geography"))
+    default_geography = _is_default_geography(payload.get("geography"))
+    countries = None if default_geography else _countries(payload.get("geography"))
     source_url = f"{DISPLAY_URL}{domain}"
     source = {
         "name": SOURCE_NAME,
@@ -162,5 +187,6 @@ def lookup(domain: str, original_input: str, cache=None, trace: ProviderTrace | 
             "This is WebTrafficChecker's modelled estimate, not the website owner's analytics.",
             "No independently measured error interval is available for this estimate.",
             "The provider's terms restrict substantially similar or competing services; the maintainers accept this risk for low-volume, cached lookups.",
-        ],
+        ]
+        + ([DEFAULT_GEOGRAPHY_NOTE] if default_geography else []),
     )

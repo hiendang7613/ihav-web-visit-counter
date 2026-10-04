@@ -57,6 +57,26 @@ class WebTrafficCheckerTests(unittest.TestCase):
         self.assertEqual(result.monthly_visits, 486200000)
         self.assertEqual(result.rank["value"], 20)
 
+    def test_default_placeholder_geography_is_omitted_with_a_note(self):
+        payload = json.loads(self.fixture)
+        payload["geography"] = [
+            {"countryCode": code, "country": code, "percentage": share}
+            for code, share in webtrafficchecker.DEFAULT_GEOGRAPHY
+        ] + [{"countryCode": "JP", "country": "JP", "percentage": 5.2}]
+
+        result = self._lookup_payload(payload)
+
+        self.assertEqual(result.monthly_visits, 486200000)
+        self.assertIsNone(result.countries)
+        self.assertIsNone(result.countries_source)
+        self.assertIn(webtrafficchecker.DEFAULT_GEOGRAPHY_NOTE, result.notes)
+
+    def test_measured_geography_is_kept_without_placeholder_note(self):
+        result = self._lookup_payload(json.loads(self.fixture))
+
+        self.assertIsNotNone(result.countries)
+        self.assertNotIn(webtrafficchecker.DEFAULT_GEOGRAPHY_NOTE, result.notes)
+
     def test_missing_analysis_timestamp_does_not_return_a_number(self):
         payload = json.loads(self.fixture)
         del payload["analyzedAt"]

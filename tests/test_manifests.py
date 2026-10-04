@@ -20,7 +20,7 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(claude["name"], codex["name"])
         self.assertEqual(claude["name"], "ihav-web-visit-counter")
         self.assertEqual(claude["version"], codex["version"])
-        self.assertEqual(claude["version"], "0.1.0")
+        self.assertEqual(claude["version"], "0.1.1")
         self.assertEqual(claude["license"], codex["license"])
         self.assertEqual(claude["license"], "MIT")
         self.assertIn("TrafficLens", codex["interface"]["longDescription"])

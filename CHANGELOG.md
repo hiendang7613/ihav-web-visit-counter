@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.1.1 — 2026-10-04
 
+- Omit WebTrafficChecker's default placeholder country split (US 45.2%, IN 10.3%, BR 6.5%, GB 6.5%, DE 5.2%), which it returns for unranked and many low-traffic domains, and add a note explaining why country shares are missing.
 - Refresh the README with shared-catalog installation, feature and JSON examples, a provider flowchart and related plugins.
 - Animate the synthetic terminal demo with a reduced-motion fallback and add issue navigation and a pull request template.
 

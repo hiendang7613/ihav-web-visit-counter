@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/hiendang7613/ihav-web-visit-counter/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/hiendang7613/ihav-web-visit-counter/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="https://github.com/hiendang7613/ihav-web-visit-counter/releases/tag/v0.1.0"><img alt="Release v0.1.0" src="https://img.shields.io/badge/release-v0.1.0-4F46E5.svg"></a>
+  <a href="https://github.com/hiendang7613/ihav-web-visit-counter/releases/tag/v0.1.1"><img alt="Release v0.1.1" src="https://img.shields.io/badge/release-v0.1.1-4F46E5.svg"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-4F46E5.svg"></a>
   <img alt="Python 3.9 or later" src="https://img.shields.io/badge/Python-3.9%2B-0F172A.svg">
   <img alt="Claude Code and Codex" src="https://img.shields.io/badge/works%20with-Claude%20Code%20%7C%20Codex-F59E0B.svg">
@@ -182,7 +182,7 @@ WebTrafficChecker describes the number as a modelled estimate based on ranking a
 
 Very small or unranked sites may return no visit number by design. When WebTrafficChecker marks a domain unranked (`isRanked: false`, rank zero or missing, or category `Unranked Website`), the plugin rejects its placeholder estimate and default country split. It continues to TrafficLens and Tranco; if neither supplies a usable visit count, the result does not include a visit number.
 
-WebTrafficChecker's `analyzed_at` timestamp is shown as “analyzed YYYY-MM-DD”. TrafficLens's `scraped_at` timestamp is shown as “scraped YYYY-MM-DD”; when its payload says `source=stale`, the output also says “stale”. Neither timestamp proves which start and end dates the provider used to compute `monthlyVisits`. TrafficLens may return a rounded string rather than an exact integer. History contains only points actually returned by the provider; it is not guaranteed to cover 12 months. Country shares are provider estimates, not site analytics, and JSON shares are rounded to four decimal places.
+WebTrafficChecker's `analyzed_at` timestamp is shown as “analyzed YYYY-MM-DD”. TrafficLens's `scraped_at` timestamp is shown as “scraped YYYY-MM-DD”; when its payload says `source=stale`, the output also says “stale”. Neither timestamp proves which start and end dates the provider used to compute `monthlyVisits`. TrafficLens may return a rounded string rather than an exact integer. History contains only points actually returned by the provider; it is not guaranteed to cover 12 months. Country shares are provider estimates, not site analytics, and JSON shares are rounded to four decimal places. WebTrafficChecker returns one fixed country split (US 45.2%, IN 10.3%, BR 6.5%, GB 6.5%, DE 5.2%) for many low-traffic domains; the plugin treats that split as a placeholder, omits it and adds a note.
 
 Tranco is a popularity ranking. If neither visits provider returns a usable estimate and the domain appears in its list, the plugin shows the rank and leaves visits unknown. If WebTrafficChecker returns no usable estimate and no later provider returns data, the CLI exits `2`; any later provider failures appear in the error's `notes` field. Exits `4` and `5` are reserved for a blocked or failed primary when no fallback returns a result.
 
