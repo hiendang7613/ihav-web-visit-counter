@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/hiendang7613/ihav-web-visit-counter/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/hiendang7613/ihav-web-visit-counter/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="https://github.com/hiendang7613/ihav-web-visit-counter/releases/tag/v0.1.1"><img alt="Release v0.1.1" src="https://img.shields.io/badge/release-v0.1.1-4F46E5.svg"></a>
+  <a href="https://github.com/hiendang7613/ihav-web-visit-counter/releases/tag/v0.1.2"><img alt="Release v0.1.2" src="https://img.shields.io/badge/release-v0.1.2-4F46E5.svg"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-4F46E5.svg"></a>
   <img alt="Python 3.9 or later" src="https://img.shields.io/badge/Python-3.9%2B-0F172A.svg">
   <img alt="Claude Code and Codex" src="https://img.shields.io/badge/works%20with-Claude%20Code%20%7C%20Codex-F59E0B.svg">

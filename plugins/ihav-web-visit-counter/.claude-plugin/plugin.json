@@ -1,7 +1,7 @@
 {
   "name": "ihav-web-visit-counter",
   "displayName": "ihav-web-visit-counter",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Monthly website traffic estimates with source and analysis date, or an honest rank when no estimate exists.",
   "author": {"name": "hiendang7613"},
   "license": "MIT",

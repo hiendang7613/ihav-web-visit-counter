@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import json
+import re
+import sys
 import unittest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins/ihav-web-visit-counter"
+sys.path.insert(0, str(PLUGIN / "core/ihav-web-visit-counter"))
+
+from ihav_web_visit_counter import __version__
 
 
 def load(path):
@@ -20,7 +25,14 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(claude["name"], codex["name"])
         self.assertEqual(claude["name"], "ihav-web-visit-counter")
         self.assertEqual(claude["version"], codex["version"])
-        self.assertEqual(claude["version"], "0.1.1")
+        self.assertEqual(claude["version"], "0.1.2")
+        self.assertEqual(claude["version"], __version__)
+        # Read this project's string version without a Python 3.11-only TOML import.
+        metadata = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+        project = metadata.split("[project]", 1)[1].split("\n[", 1)[0]
+        project_version = re.search(r'^\s*version\s*=\s*"([^"]+)"', project, re.MULTILINE)
+        self.assertIsNotNone(project_version)
+        self.assertEqual(claude["version"], project_version.group(1))
         self.assertEqual(claude["license"], codex["license"])
         self.assertEqual(claude["license"], "MIT")
         self.assertIn("TrafficLens", codex["interface"]["longDescription"])

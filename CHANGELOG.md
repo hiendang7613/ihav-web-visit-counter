@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.2 — 2026-10-08
+
+- Ignore result caches for a different domain or with malformed values, then continue the normal provider chain. Keep valid legacy cache shapes readable.
+- Keep cache warnings out of stored results, so a later cache hit no longer repeats a warning from the run that refreshed the cache.
+- Close HTTP error response bodies on every handled return or exception without retrying blocked sources.
+- Bound raw JSON integers before provider field conversion so unsupported numbers continue the same fallback chain on Python 3.9 and later.
+- Reject invalid or oversized decimal strings consistently across supported Python versions so malformed counts or ranks cannot interrupt fallback.
+- Accept a whole-number float from WebTrafficChecker only up to `2^53`, the range in which a float holds an exact count. A larger value continues to the next provider.
+- Validate Tranco rows before storing a daily list, and replace a corrupt cached list with one download. Keep rank-only results separate from visit estimates.
+- Decode each fresh Tranco download once, share decimal-string conversion across providers, and remove a duplicate test definition.
+- Quote the script path and website argument in the skill commands, and run each lookup as one command without `echo`, pipes or chained commands.
+- Show the complete synthetic demo in its first animation frame.
+- Add 21 fixture-only regression tests and check that project metadata and both host manifests match the runtime package version. JSON contract version `2` and exit codes remain unchanged.
+- Add a fixture-only consumer compatibility command and CI job against pinned public Leaderboards and Competitor Search code, with network access disabled in Python subprocesses. It includes the Counter CLI's exit `2` no-data result.
+- Check rounded `T` labels through the actual TrafficLens parser and Counter CLI, and document the pinned Leaderboards `0.2.2` floor/no-weight policy without changing producer or consumer behavior.
+- Document sources reviewed for possible future adapters: CrUX, Similarweb rank APIs and the Tranco per-domain API. None of them is part of the provider chain.
+
 ## 0.1.1 — 2026-10-04
 
 - Omit WebTrafficChecker's default placeholder country split (US 45.2%, IN 10.3%, BR 6.5%, GB 6.5%, DE 5.2%), which it returns for unranked and many low-traffic domains, and add a note explaining why country shares are missing.
