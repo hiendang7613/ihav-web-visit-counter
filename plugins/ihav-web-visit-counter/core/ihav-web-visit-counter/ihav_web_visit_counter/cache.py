@@ -91,6 +91,8 @@ class Cache:
         try:
             envelope = json.loads(path.read_text(encoding="utf-8"))
             result = result_from_dict(envelope["result"])
+            if result.domain != domain:
+                raise ValueError("Cached result belongs to a different domain.")
         except OSError as exc:
             self._warn(path, "read", str(exc))
             return None

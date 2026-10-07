@@ -7,14 +7,17 @@ description: Monthly visits estimates for a website URL or domain, including sou
 
 Run the bundled command for each lookup. Replace `<skill-directory>` with the installed directory that contains this `SKILL.md`:
 
+Run it as one command. Keep the script path and website argument quoted as data.
+Do not prepend `echo`, add pipes, or combine it with other shell commands.
+
 On macOS/Linux, use `python3`. On Windows, use `py -3`:
 
 ```bash
-python3 <skill-directory>/scripts/visits.py example.com
+python3 "<skill-directory>/scripts/visits.py" "example.com"
 ```
 
 ```powershell
-py -3 <skill-directory>/scripts/visits.py example.com
+py -3 "<skill-directory>/scripts/visits.py" "example.com"
 ```
 
 Replace `example.com` with the URL or domain supplied by the user. Add `--json` when you need the structured result contract. Do not estimate a number from memory, search snippets or the domain name.

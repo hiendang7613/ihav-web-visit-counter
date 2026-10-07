@@ -7,10 +7,11 @@ import io
 import zipfile
 from datetime import datetime, timezone
 
-from ..cache import Cache, CachedBytes
+from ..cache import Cache
 from ..errors import ProviderError
 from ..http import get_bytes
 from ..models import ProviderTrace, VisitResult
+from ..numeric import decimal_integer
 
 
 LIST_URL = "https://tranco-list.eu/top-1m.csv.zip"
@@ -49,46 +50,25 @@ def rank_in_list(body: bytes, domain: str) -> int | None:
             first, second = row[0].strip(), row[1].strip()
             if first.lower() in {"rank", "position"} or second.lower() in {"domain", "host"}:
                 continue
-            if first.isdigit():
-                rank, listed_domain = int(first), second
-            elif second.isdigit():
-                listed_domain, rank = first, int(second)
-            else:
+            rank, listed_domain = decimal_integer(first), second
+            if rank is None:
+                rank, listed_domain = decimal_integer(second), first
+            if rank is None or rank <= 0:
                 continue
-            saw_row = True
-            normalized_listed = listed_domain.lower().rstrip(".")
+            normalized_listed = listed_domain.lower()
             if normalized_listed.startswith("www."):
                 normalized_listed = normalized_listed[4:]
+            normalized_listed = normalized_listed.rstrip(".")
+            if not normalized_listed:
+                continue
+            saw_row = True
             if normalized_listed == domain:
-                return rank if rank > 0 else None
+                return rank
         if not saw_row:
             raise ProviderError("Tranco's downloaded list did not contain parseable rank rows.", SOURCE_NAME)
     except (UnicodeDecodeError, csv.Error) as exc:
         raise ProviderError("Tranco's downloaded list was not valid CSV.", SOURCE_NAME) from exc
     return None
-
-
-def _get_daily_list(cache: Cache, trace: ProviderTrace | None = None) -> CachedBytes:
-    cached = cache.get_daily_blob(LIST_CACHE_NAME)
-    if cached is not None:
-        return cached
-    status, body, _headers = get_bytes(
-        LIST_URL,
-        "application/zip, text/csv;q=0.9, */*;q=0.1",
-        redirect_host="tranco-list.eu",
-    )
-    if trace is not None:
-        trace.http_status = status
-    if status != 200:
-        raise ProviderError(f"Tranco returned HTTP {status} for its daily list.", SOURCE_NAME, status)
-    # Parse before storing so a corrupt or unexpected download is never retained as a fresh list.
-    try:
-        _csv_bytes(body)
-    except ProviderError as exc:
-        if exc.http_status is None:
-            exc.http_status = status
-        raise
-    return cache.put_daily_blob(LIST_CACHE_NAME, body)
 
 
 def lookup(
@@ -97,8 +77,31 @@ def lookup(
     cache: Cache,
     trace: ProviderTrace | None = None,
 ) -> VisitResult | None:
-    daily_list = _get_daily_list(cache, trace)
-    rank = rank_in_list(daily_list.body, domain)
+    daily_list = cache.get_daily_blob(LIST_CACHE_NAME)
+    if daily_list is not None:
+        try:
+            rank = rank_in_list(daily_list.body, domain)
+        except ProviderError:
+            cache.warnings.append("Ignored an invalid cached Tranco list; continuing without it.")
+            daily_list = None
+    if daily_list is None:
+        status, body, _headers = get_bytes(
+            LIST_URL,
+            "application/zip, text/csv;q=0.9, */*;q=0.1",
+            redirect_host="tranco-list.eu",
+        )
+        if trace is not None:
+            trace.http_status = status
+        if status != 200:
+            raise ProviderError(f"Tranco returned HTTP {status} for its daily list.", SOURCE_NAME, status)
+        # Decode/search once; retain only a list with parseable rank rows.
+        try:
+            rank = rank_in_list(body, domain)
+        except ProviderError as exc:
+            if exc.http_status is None:
+                exc.http_status = status
+            raise
+        daily_list = cache.put_daily_blob(LIST_CACHE_NAME, body)
     if rank is None:
         return None
     retrieved_date = daily_list.stored_at[:10]

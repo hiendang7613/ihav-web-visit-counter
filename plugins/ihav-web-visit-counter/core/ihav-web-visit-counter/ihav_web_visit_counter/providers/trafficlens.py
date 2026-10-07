@@ -11,6 +11,7 @@ from decimal import Decimal, InvalidOperation
 from ..errors import ProviderError
 from ..http import get_bytes
 from ..models import ProviderTrace, VisitResult
+from ..numeric import decimal_integer, json_integer
 
 
 BASE_URL = "https://traffic-lens-api.admin-d10.workers.dev/api/analyze/"
@@ -40,9 +41,9 @@ def _positive_int(value: object) -> int | None:
         return None
     if isinstance(value, int):
         return value if value > 0 else None
-    if isinstance(value, str) and value.isdigit():
-        number = int(value)
-        return number if number > 0 else None
+    if isinstance(value, str):
+        number = decimal_integer(value)
+        return number if number is not None and number > 0 else None
     return None
 
 
@@ -85,7 +86,7 @@ def lookup(domain: str, original_input: str, cache=None, trace: ProviderTrace | 
     if status == 404:
         return None
     try:
-        payload = json.loads(body.decode("utf-8"))
+        payload = json.loads(body.decode("utf-8"), parse_int=json_integer)
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ProviderError("TrafficLens returned invalid JSON; no retry was made.", SOURCE_NAME, status) from exc
     if not isinstance(payload, dict):

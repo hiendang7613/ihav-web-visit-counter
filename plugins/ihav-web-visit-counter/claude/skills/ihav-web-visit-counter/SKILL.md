@@ -9,6 +9,9 @@ allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/core/ihav-web-visit-counter/sc
 
 Use the bundled command for every traffic lookup. Do not estimate a number from memory, search snippets or the domain name.
 
+Run it as one command. Keep the script path and website argument quoted as data.
+Do not prepend `echo`, add pipes, or combine it with other shell commands.
+
 Run with `python3` on macOS/Linux or `py -3` on Windows. Replace the argument with the website URL or domain supplied by the user:
 
 ```bash

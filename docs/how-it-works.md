@@ -43,3 +43,9 @@ Each provider entry has this shape:
 `http_status` is the HTTP status returned by the provider API. It never uses a nested target-site status such as a DNS status. A challenge page can be `blocked` with HTTP `200`; a transport failure has `http_status: null`. A cache hit has one `cached` entry for the provider that supplied the value. Its `fetched_at` and any available `http_status` refer to the original successful fetch. The cache entry does not repeat an earlier provider block as a current outcome.
 
 Error JSON keeps the existing `error` object and its `notes` strings. It adds the same top-level `contract_version` and `providers` fields. Invalid input has an empty provider array. Exit codes remain `0`, `2`, `4`, `5`, and `64` with their existing meanings.
+
+## Rounded labels and consumer policy
+
+TrafficLens accepts positive visit strings with optional `K`, `M`, `B`, or `T` suffixes, ignoring suffix case. Counter preserves the provider's string in `monthly_visits_text` and leaves `monthly_visits` as `null`; for example, a synthetic `1.2T` response stays `1.2T`. This behavior predates version `0.1.2`. A display label does not promise that every consumer can parse it into a policy weight.
+
+The compatibility job pins Leaderboards `0.2.2`, whose weight parser accepts `K`, `M`, and `B` and deliberately rejects `T`. With a `T` label and another finite positive visit count, that version assigns the smallest known count as a policy floor and preserves the raw label and `null` visits. With only `T` labels, it returns a no-weight diagnostic instead of inventing equal weights. Competitor Search `0.1.0` and the locally qualified `0.2.0` preserve the Counter payload. These outcomes are checked with a mocked TrafficLens response through the actual Counter CLI and consumer files; they do not establish a live provider incident. Extending Leaderboards to parse `T` requires a consumer policy change and updated version, pin, and compatibility expectations.

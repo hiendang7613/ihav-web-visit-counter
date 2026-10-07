@@ -35,3 +35,33 @@ jobs:
       - name: Smoke test fixture lookup through the Windows output pipe
         if: runner.os == 'Windows'
         run: python tests/fixture_cli_smoke.py
+
+  consumer-compatibility:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      - name: Check out released Leaderboards 0.2.2
+        uses: actions/checkout@v7
+        with:
+          repository: hiendang7613/ihav-leaderboards
+          ref: 66524f54288133421f68c5c1d0616ff8f9ffd76c
+          path: .consumer-checkouts/leaderboards
+          persist-credentials: false
+      - name: Check out released Competitor Search 0.1.0
+        uses: actions/checkout@v7
+        with:
+          repository: hiendang7613/ihav-competitor-search
+          ref: ec3f44da23c642f638d66ec75195d2d1e704da72
+          path: .consumer-checkouts/competitor
+          persist-credentials: false
+      - name: Check actual consumer code with fixture-only Counter responses
+        run: >-
+          python tests/consumer_compatibility.py
+          --leaderboards-plugin .consumer-checkouts/leaderboards/plugins/ihav-leaderboards
+          --competitor-plugin .consumer-checkouts/competitor/plugins/ihav-competitor-search

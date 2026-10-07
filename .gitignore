@@ -1,5 +1,6 @@
 # Runtime data created by ihav plugins
 .ihav_space/
+.consumer-checkouts/
 
 # Python
 __pycache__/

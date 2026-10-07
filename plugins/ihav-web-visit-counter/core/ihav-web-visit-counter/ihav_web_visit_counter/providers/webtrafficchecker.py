@@ -9,12 +9,15 @@ from urllib.parse import urlencode
 from ..errors import ProviderError
 from ..http import get_bytes
 from ..models import ProviderTrace, VisitResult
+from ..numeric import decimal_integer, json_integer
 
 
 BASE_URL = "https://webtrafficchecker.com/api/traffic"
 DISPLAY_URL = "https://webtrafficchecker.com/traffic/"
 SOURCE_NAME = "WebTrafficChecker"
 PROVIDER_ID = "webtrafficchecker"
+# Larger floats cannot hold an exact count, so they are not trusted as visits or ranks.
+MAX_EXACT_FLOAT = 2**53
 
 
 def _as_positive_int(value: object) -> int | None:
@@ -22,10 +25,12 @@ def _as_positive_int(value: object) -> int | None:
         return None
     if isinstance(value, int):
         number = value
-    elif isinstance(value, float) and value.is_integer():
+    elif isinstance(value, float) and value.is_integer() and abs(value) <= MAX_EXACT_FLOAT:
         number = int(value)
-    elif isinstance(value, str) and value.isdigit():
-        number = int(value)
+    elif isinstance(value, str):
+        number = decimal_integer(value)
+        if number is None:
+            return None
     else:
         return None
     return number if number > 0 else None
@@ -118,7 +123,7 @@ def lookup(domain: str, original_input: str, cache=None, trace: ProviderTrace | 
     if status == 404:
         return None
     try:
-        payload = json.loads(body.decode("utf-8"))
+        payload = json.loads(body.decode("utf-8"), parse_int=json_integer)
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ProviderError("WebTrafficChecker returned invalid JSON; no retry was made.", SOURCE_NAME, status) from exc
     if not isinstance(payload, dict):

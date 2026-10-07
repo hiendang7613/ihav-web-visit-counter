@@ -10,6 +10,7 @@
     .r4 { animation-name: reveal4; }
     .r5 { animation-name: reveal5; }
     .r6 { animation-name: reveal6; }
+    .command, .row { animation-delay: -7s; }
     @keyframes typeCommand { 0% { clip-path: inset(0 100% 0 0) fill-box; } 22%, 95% { clip-path: inset(0 0 0 0) fill-box; } 100% { clip-path: inset(0 100% 0 0) fill-box; } }
     @keyframes reveal1 { 0%, 25%, 100% { opacity: 0; } 26%, 95% { opacity: 1; } }
     @keyframes reveal2 { 0%, 31%, 100% { opacity: 0; } 32%, 95% { opacity: 1; } }

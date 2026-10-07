@@ -146,16 +146,6 @@ class CliTests(unittest.TestCase):
         self.assertEqual(payload["providers"], [])
         self.assertEqual(payload["error"]["code"], "invalid_arguments")
 
-    def test_invalid_arguments_json_has_contract_version_and_empty_provider_chain(self):
-        stdout = StringIO()
-        with redirect_stdout(stdout):
-            exit_code = cli.main(["--json", "--unknown-option"])
-        payload = json.loads(stdout.getvalue())
-        self.assertEqual(exit_code, 64)
-        self.assert_json_contract(payload)
-        self.assertEqual(payload["providers"], [])
-        self.assertEqual(payload["error"]["code"], "invalid_arguments")
-
     def test_blocked_primary_runs_tranco_once_and_returns_rank_with_reason(self):
         stdout = StringIO()
         archive = (ROOT / "tests/fixtures/tranco/top-1m.csv.zip").read_bytes()

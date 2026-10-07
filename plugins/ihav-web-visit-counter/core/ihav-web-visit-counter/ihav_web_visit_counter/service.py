@@ -140,8 +140,8 @@ def lookup(input_value: str, cache_dir: Path | None = None) -> VisitResult:
             for skipped_provider in PROVIDERS[index + 1 :]
         )
         result.providers = outcomes
-        _with_cache_notes(result, cache)
         # Cache estimates from every provider for 24 hours; never cache rank-only output.
+        # Cache warnings describe this run only, so they are added after storing.
         if result.kind == "estimate":
             cache.put_result(result)
         return _with_cache_notes(result, cache)

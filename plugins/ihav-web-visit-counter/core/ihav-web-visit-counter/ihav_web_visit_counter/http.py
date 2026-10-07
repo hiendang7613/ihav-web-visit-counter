@@ -94,34 +94,34 @@ def get_bytes(url: str, accept: str, redirect_host: str | None = None) -> tuple[
     try:
         response = opener.open(request, timeout=TIMEOUT_SECONDS)
     except HTTPError as exc:
-        if exc.code in {401, 403, 429}:
-            raise BlockedError(
-                f"{source_host} returned HTTP {exc.code}; stopped this source without retrying.",
-                source=source_host,
-                http_status=exc.code,
-            ) from exc
-        response_headers = _headers(exc.headers)
-        if 300 <= exc.code < 400 and "location" in response_headers:
-            exc.close()
+        with exc:
+            if exc.code in {401, 403, 429}:
+                raise BlockedError(
+                    f"{source_host} returned HTTP {exc.code}; stopped this source without retrying.",
+                    source=source_host,
+                    http_status=exc.code,
+                ) from exc
+            response_headers = _headers(exc.headers)
+            if 300 <= exc.code < 400 and "location" in response_headers:
+                raise ProviderError(
+                    f"{source_host} returned a redirect; redirect not followed.",
+                    source=source_host,
+                    http_status=exc.code,
+                ) from exc
+            body = _read_limited(exc, 16384, source_host, exc.code)
+            if _is_challenge(body, response_headers):
+                raise BlockedError(
+                    f"{source_host} returned a challenge page; stopped this source without retrying.",
+                    source=source_host,
+                    http_status=exc.code,
+                ) from exc
+            if exc.code == 404:
+                return 404, body, response_headers
             raise ProviderError(
-                f"{source_host} returned a redirect; redirect not followed.",
+                f"{source_host} returned HTTP {exc.code}; no retry was made.",
                 source=source_host,
                 http_status=exc.code,
             ) from exc
-        body = _read_limited(exc, 16384, source_host, exc.code)
-        if _is_challenge(body, response_headers):
-            raise BlockedError(
-                f"{source_host} returned a challenge page; stopped this source without retrying.",
-                source=source_host,
-                http_status=exc.code,
-            ) from exc
-        if exc.code == 404:
-            return 404, body, response_headers
-        raise ProviderError(
-            f"{source_host} returned HTTP {exc.code}; no retry was made.",
-            source=source_host,
-            http_status=exc.code,
-        ) from exc
     except (URLError, TimeoutError, OSError) as exc:
         raise ProviderError(
             f"Could not reach {source_host}: {exc.reason if isinstance(exc, URLError) else exc}",
